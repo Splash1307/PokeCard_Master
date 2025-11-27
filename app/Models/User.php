@@ -14,15 +14,32 @@ class User extends Authenticatable
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
     /**
+     * Désactiver les timestamps automatiques car la table n'a pas created_at/updated_at
+     */
+    public $timestamps = false;
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'pseudo',
         'email',
         'password',
+        'coin',
+        'lastConnexionAt',
+        'role_id',
     ];
+
+    /**
+     * Accesseur pour 'name' qui retourne 'pseudo'
+     * Permet la compatibilité avec le code existant
+     */
+    public function getNameAttribute()
+    {
+        return $this->pseudo;
+    }
 
     /**
      * The attributes that should be hidden for serialization.
@@ -44,9 +61,27 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
+            'lastConnexionAt' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    // Les cartes que possède l'utilisateur (via sa collection)
+    public function collections()
+    {
+        return $this->hasMany(Collection::class);
+    }
+
+    // Les échanges créés par l'utilisateur
+    public function createdTrades()
+    {
+        return $this->hasMany(Trade::class, 'creator_id');
+    }
+
+    // Les échanges acceptés par l'utilisateur
+    public function respondedTrades()
+    {
+        return $this->hasMany(Trade::class, 'responder_id');
     }
 }
