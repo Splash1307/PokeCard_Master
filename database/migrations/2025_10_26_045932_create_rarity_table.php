@@ -10,6 +10,8 @@ return new class extends Migration {
             $table->id();
             $table->string('name', 50);
             $table->integer('percentageSpawn');
+            $table->integer('price')->default(50);
+
         });
     }
     public function down(): void {

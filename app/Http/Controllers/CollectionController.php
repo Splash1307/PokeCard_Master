@@ -25,7 +25,7 @@ class CollectionController extends Controller
         ])
             ->where('user_id', $user->id)
             ->where('nbCard', '>', 0)
-            ->pluck('nbCard', 'card_id') // Renvoie un tableau [card_id => nbCard]
+            ->pluck('nbCard', 'card_id')
             ->toArray();
 
         // Récupérer toutes les cartes avec leurs relations

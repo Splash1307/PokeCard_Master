@@ -14,7 +14,7 @@ class Rarity extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name', 'percentageSpawn'];
+    protected $fillable = ['name', 'percentageSpawn', 'price'];
 
     // Une rareté a plusieurs cartes
     public function cards()
