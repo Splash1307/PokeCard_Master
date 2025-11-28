@@ -10,7 +10,8 @@ class SeriesSeeder extends Seeder
     public function run()
     {
         $series = [
-            ['name' => 'Épée et Bouclier', 'abbreviation' => 'swsh']
+            ['name' => 'Épée et Bouclier', 'abbreviation' => 'swsh'],
+            ['name' => 'Scarlet et Violet', 'abbreviation' => 'sv']
         ];
 
         DB::table('series')->insert($series);

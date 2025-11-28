@@ -10,7 +10,7 @@ return new class extends Migration {
             $table->id();
             $table->string('name', 50);
             $table->integer('localId');
-            $table->string('logo')->nullable();
+            $table->string('image')->nullable();
             $table->foreignId('set_id')->constrained('sets');
             $table->foreignId('rarity_id')->constrained('rarity');
             $table->foreignId('primaryType')->nullable()->constrained('types');

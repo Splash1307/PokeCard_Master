@@ -16,22 +16,12 @@ class Card extends Model
     protected $fillable = [
         'name',
         'localId',
-        'logo',
+        'image',
         'set_id',
         'rarity_id',
         'primaryType',
         'secondaryType',
     ];
-
-    // Ajouter l'accesseur 'image' à la sérialisation JSON
-    protected $appends = ['image'];
-
-    // Accesseur pour 'image' qui retourne 'logo'
-    // Permet la compatibilité avec le code frontend
-    public function getImageAttribute()
-    {
-        return $this->logo;
-    }
 
     // Une carte peut être dans plusieurs collections
     public function collections()

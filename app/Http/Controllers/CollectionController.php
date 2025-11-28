@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Collection;
@@ -16,7 +15,7 @@ class CollectionController extends Controller
     {
         $user = auth()->user();
 
-        // Récupérer la collection de l'utilisateur avec les informations complètes de chaque carte
+        // Récupérer la collection de l'utilisateur
         $userCollection = Collection::with([
             'card.rarity',
             'card.type',
@@ -28,9 +27,10 @@ class CollectionController extends Controller
             ->pluck('nbCard', 'card_id')
             ->toArray();
 
-        // Récupérer toutes les cartes avec leurs relations
+        // Récupérer toutes les cartes avec leurs relations, triées par série, set, et localId
         $allCards = Card::with(['rarity', 'type', 'set.serie', 'set'])
-            ->orderBy('name')
+            ->whereHas('set.serie') // S'assurer que la carte a une série
+            ->orderBy('localId')
             ->get()
             ->map(function ($card) use ($userCollection) {
                 return [
@@ -38,22 +38,32 @@ class CollectionController extends Controller
                     'localId' => $card->localId,
                     'name' => $card->name,
                     'image' => $card->image,
+                    'hp' => $card->hp,
+                    'attack' => $card->attack,
+                    'defense' => $card->defense,
                     'rarity' => $card->rarity,
                     'type' => $card->type,
-                    'set' => $card->set,
-                    'serie' => $card->set->serie,
+                    'set' => [
+                        'id' => $card->set->id,
+                        'name' => $card->set->name,
+                        'abbreviation' => $card->set->abbreviation,
+                        'serie' => [
+                            'id' => $card->set->serie->id,
+                            'name' => $card->set->serie->name,
+                            'abbreviation' => $card->set->serie->abbreviation,
+                        ],
+                    ],
                     'owned' => isset($userCollection[$card->id]),
                     'quantity' => $userCollection[$card->id] ?? 0,
                 ];
             });
 
-        // Récupérer les cartes disponibles pour les échanges (celles que l'utilisateur ne possède pas)
-        $availableCards = $allCards->filter(fn($card) => !$card['owned'])->values(); // ->values() réindexe la collection
+        // Récupérer les cartes disponibles pour les échanges
+        $availableCards = $allCards->filter(fn($card) => !$card['owned'])->values();
 
         return Inertia::render('Collection/Index', [
             'allCards' => $allCards,
             'availableCards' => $availableCards
         ]);
     }
-
 }

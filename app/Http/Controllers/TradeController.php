@@ -23,7 +23,11 @@ class TradeController extends Controller
             'offeredCard.rarity',
             'offeredCard.type',
             'requestedCard.rarity',
-            'requestedCard.type'
+            'requestedCard.type',
+            'requestedCard.set',
+            'offeredCard.set',
+            'requestedCard.set.serie',
+            'offeredCard.set.serie',
         ])
             ->where('status', 'pending')
             ->where('creator_id', '!=', $user->id)
@@ -45,11 +49,14 @@ class TradeController extends Controller
         // Récupérer les offres créées par l'utilisateur
         $createdTrades = Trade::with([
             'creator',
-            'responder',
             'offeredCard.rarity',
             'offeredCard.type',
             'requestedCard.rarity',
-            'requestedCard.type'
+            'requestedCard.type',
+            'requestedCard.set',
+            'offeredCard.set',
+            'requestedCard.set.serie',
+            'offeredCard.set.serie',
         ])
             ->where('creator_id', $user->id)
             ->latest()

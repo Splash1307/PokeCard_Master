@@ -2,26 +2,6 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { computed } from 'vue';
-
-const imageUrl = computed(() => {
-    const serie = props.card.set?.serie?.abbreviation;
-    const set = props.card.set?.abbreviation;
-    const localId = props.card.localId;
-
-    console.log("serie:", serie);
-    console.log("set:", set);
-    console.log("localId:", localId);
-
-    if (!serie || !set || !localId) return '';
-
-    const url = `/assets/cards/${serie}/${set}/${localId}.png`;
-    console.log("imageUrl:", url);
-
-    return url;
-});
-
-
 
 
 // Définir les propriétés que le composant reçoit
@@ -85,8 +65,8 @@ const proposeTrade = () => {
             <!-- Image de la carte -->
             <div class="aspect-[3/4] rounded-lg overflow-hidden bg-muted mb-3 relative">
                 <img
-                    :src="imageUrl"
-                    :alt="imageUrl"
+                    :src="card.image"
+                    :alt="card.name"
                     class="w-full h-full object-cover"
                     :class="{ 'grayscale': owned === false }"
                 />

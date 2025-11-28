@@ -3,6 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { router } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 // Définir les propriétés que le composant reçoit
 const props = defineProps<{
@@ -73,6 +74,25 @@ const getStatusText = (status: string) => {
     if (status === 'cancelled') return 'Annulé';
     return status;
 };
+
+const imageUrl = computed(() => {
+    const serie = props.card.set?.serie?.abbreviation;
+    const set = props.card.set?.abbreviation;
+    const localId = props.card.localId;
+
+    console.log("serie:", serie);
+    console.log("set:", set);
+    console.log("localId:", localId);
+
+    if (!serie || !set || !localId) return '';
+
+    const url = `/assets/cards/${serie}/${set}/${localId}.png`;
+    console.log("imageUrl:", url);
+
+    return url;
+});
+
+
 </script>
 
 <template>
@@ -138,8 +158,8 @@ const getStatusText = (status: string) => {
                     <div class="border-2 border-green-500/20 rounded-lg p-3 bg-green-500/5 overflow-hidden">
                         <div class="flex justify-center mb-2">
                             <img
-                                :src="trade.requested_card.image"
-                                :alt="trade.requested_card.name"
+                                :src="imageUrl"
+                                :alt="imageUrl"
                                 class="h-32 w-auto object-contain"
                             />
                         </div>
