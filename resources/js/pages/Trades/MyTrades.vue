@@ -16,22 +16,44 @@ defineProps<{
             id: number;
             name: string;
             image: string;
+            localId?: string;
             rarity?: {
                 name: string;
             };
             type?: {
                 name: string;
+            };
+            set?: {
+                id: number;
+                name: string;
+                abbreviation?: string;
+                serie?: {
+                    id: number;
+                    name: string;
+                    abbreviation?: string;
+                };
             };
         };
         requested_card: {
             id: number;
             name: string;
             image: string;
+            localId?: string;
             rarity?: {
                 name: string;
             };
             type?: {
                 name: string;
+            };
+            set?: {
+                id: number;
+                name: string;
+                abbreviation?: string;
+                serie?: {
+                    id: number;
+                    name: string;
+                    abbreviation?: string;
+                };
             };
         };
         responder?: {
@@ -49,22 +71,44 @@ defineProps<{
             id: number;
             name: string;
             image: string;
+            localId?: string;
             rarity?: {
                 name: string;
             };
             type?: {
                 name: string;
+            };
+            set?: {
+                id: number;
+                name: string;
+                abbreviation?: string;
+                serie?: {
+                    id: number;
+                    name: string;
+                    abbreviation?: string;
+                };
             };
         };
         requested_card: {
             id: number;
             name: string;
             image: string;
+            localId?: string;
             rarity?: {
                 name: string;
             };
             type?: {
                 name: string;
+            };
+            set?: {
+                id: number;
+                name: string;
+                abbreviation?: string;
+                serie?: {
+                    id: number;
+                    name: string;
+                    abbreviation?: string;
+                };
             };
         };
         created_at: string;

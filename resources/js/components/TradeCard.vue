@@ -17,22 +17,44 @@ const props = defineProps<{
             id: number;
             name: string;
             image: string;
+            localId?: string;
             rarity?: {
                 name: string;
             };
             type?: {
                 name: string;
+            };
+            set?: {
+                id: number;
+                name: string;
+                abbreviation?: string;
+                serie?: {
+                    id: number;
+                    name: string;
+                    abbreviation?: string;
+                };
             };
         };
         requested_card: {
             id: number;
             name: string;
             image: string;
+            localId?: string;
             rarity?: {
                 name: string;
             };
             type?: {
                 name: string;
+            };
+            set?: {
+                id: number;
+                name: string;
+                abbreviation?: string;
+                serie?: {
+                    id: number;
+                    name: string;
+                    abbreviation?: string;
+                };
             };
         };
         responder?: {
@@ -76,9 +98,9 @@ const getStatusText = (status: string) => {
 };
 
 const imageUrl = computed(() => {
-    const serie = props.card.set?.serie?.abbreviation;
-    const set = props.card.set?.abbreviation;
-    const localId = props.card.localId;
+    const serie = props.trade.requested_card.set?.serie?.abbreviation;
+    const set = props.trade.requested_card.set?.abbreviation;
+    const localId = props.trade.requested_card.localId;
 
     console.log("serie:", serie);
     console.log("set:", set);
