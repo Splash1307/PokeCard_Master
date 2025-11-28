@@ -9,9 +9,11 @@ const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',
         href: dashboard().url,
+
     },
 ];
 </script>
+
 
 <template>
     <Head title="Dashboard" />
