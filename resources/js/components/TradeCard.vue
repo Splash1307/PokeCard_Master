@@ -84,23 +84,22 @@ const getStatusText = (status: string) => {
                     {{ getStatusText(trade.status) }}
                 </Badge>
             </div>
-            <p v-if="showCreator" class="text-sm text-muted-foreground">
-                Proposé par <strong>{{ trade.creator.name }}</strong>
-            </p>
         </CardHeader>
 
-        <CardContent v-if="trade.offered_card && trade.requested_card">
-            <div class="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
+        <CardContent v-if="trade.offered_card && trade.requested_card" class="p-4">
+            <div class="flex flex-col gap-4">
                 <!-- Carte offerte -->
                 <div class="space-y-2">
                     <p class="text-xs font-semibold text-center text-muted-foreground">J'offre</p>
-                    <div class="border-2 border-primary/20 rounded-lg p-3 bg-primary/5">
-                        <img
-                            :src="trade.offered_card.image"
-                            :alt="trade.offered_card.name"
-                            class="w-full h-40 object-contain mb-2"
-                        />
-                        <p class="text-sm font-semibold text-center line-clamp-1">
+                    <div class="border-2 border-primary/20 rounded-lg p-3 bg-primary/5 overflow-hidden">
+                        <div class="flex justify-center mb-2">
+                            <img
+                                :src="trade.offered_card.image"
+                                :alt="trade.offered_card.name"
+                                class="h-32 w-auto object-contain"
+                            />
+                        </div>
+                        <p class="text-sm font-semibold text-center truncate px-1">
                             {{ trade.offered_card.name }}
                         </p>
                         <div class="flex gap-1 justify-center mt-2 flex-wrap">
@@ -115,35 +114,36 @@ const getStatusText = (status: string) => {
                 </div>
 
                 <!-- Flèche d'échange -->
-                <div class="flex flex-col items-center justify-center px-2">
+                <div class="flex items-center justify-center py-2">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        width="32"
-                        height="32"
+                        width="24"
+                        height="24"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
                         stroke-width="2"
                         stroke-linecap="round"
                         stroke-linejoin="round"
-                        class="text-primary"
+                        class="text-primary rotate-90"
                     >
                         <path d="M5 12h14" />
                         <path d="m12 5 7 7-7 7" />
                     </svg>
-                    <span class="text-xs text-muted-foreground mt-1">VS</span>
                 </div>
 
                 <!-- Carte demandée -->
                 <div class="space-y-2">
                     <p class="text-xs font-semibold text-center text-muted-foreground">Je veux</p>
-                    <div class="border-2 border-green-500/20 rounded-lg p-3 bg-green-500/5">
-                        <img
-                            :src="trade.requested_card.image"
-                            :alt="trade.requested_card.name"
-                            class="w-full h-40 object-contain mb-2"
-                        />
-                        <p class="text-sm font-semibold text-center line-clamp-1">
+                    <div class="border-2 border-green-500/20 rounded-lg p-3 bg-green-500/5 overflow-hidden">
+                        <div class="flex justify-center mb-2">
+                            <img
+                                :src="trade.requested_card.image"
+                                :alt="trade.requested_card.name"
+                                class="h-32 w-auto object-contain"
+                            />
+                        </div>
+                        <p class="text-sm font-semibold text-center truncate px-1">
                             {{ trade.requested_card.name }}
                         </p>
                         <div class="flex gap-1 justify-center mt-2 flex-wrap">
