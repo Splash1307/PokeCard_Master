@@ -11,7 +11,7 @@ class Series extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'abbreviation'];
 
     // Une série a plusieurs sets
     public function sets()

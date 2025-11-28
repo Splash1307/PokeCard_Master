@@ -2,6 +2,27 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { computed } from 'vue';
+
+const imageUrl = computed(() => {
+    const serie = props.card.set?.serie?.abbreviation;
+    const set = props.card.set?.abbreviation;
+    const localId = props.card.localId;
+
+    console.log("serie:", serie);
+    console.log("set:", set);
+    console.log("localId:", localId);
+
+    if (!serie || !set || !localId) return '';
+
+    const url = `/assets/cards/${serie}/${set}/${localId}.png`;
+    console.log("imageUrl:", url);
+
+    return url;
+});
+
+
+
 
 // Définir les propriétés que le composant reçoit
 const props = defineProps<{
@@ -12,6 +33,7 @@ const props = defineProps<{
         hp?: number;
         attack?: number;
         defense?: number;
+        localId?: number;
         rarity?: {
             name: string;
         };
@@ -20,8 +42,10 @@ const props = defineProps<{
         };
         set?: {
             name: string;
-            series?: {
+            abbreviation: string;
+            serie?: {
                 name: string;
+                abbreviation: string;
             };
         };
     };
@@ -61,8 +85,8 @@ const proposeTrade = () => {
             <!-- Image de la carte -->
             <div class="aspect-[3/4] rounded-lg overflow-hidden bg-muted mb-3 relative">
                 <img
-                    :src="card.image"
-                    :alt="card.name"
+                    :src="imageUrl"
+                    :alt="imageUrl"
                     class="w-full h-full object-cover"
                     :class="{ 'grayscale': owned === false }"
                 />
@@ -119,7 +143,7 @@ const proposeTrade = () => {
 
                 <!-- Set et Série -->
                 <div v-if="card.set" class="text-xs text-muted-foreground">
-                    <div v-if="card.set.series">{{ card.set.series.name }}</div>
+                    <div v-if="card.set.serie">{{ card.set.serie.name }}</div>
                     <div>{{ card.set.name }}</div>
                 </div>
             </div>

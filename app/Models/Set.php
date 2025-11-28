@@ -11,10 +11,10 @@ class Set extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name', 'series_id'];
+    protected $fillable = ['name', 'series_id', 'abbreviation'];
 
     // Un set appartient à une série
-    public function series()
+    public function serie()
     {
         return $this->belongsTo(Series::class);
     }
