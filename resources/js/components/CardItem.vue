@@ -26,6 +26,7 @@ const props = defineProps<{
         };
     };
     quantity?: number;
+    owned?: boolean;
     showTradeButton?: boolean;
 }>();
 
@@ -41,26 +42,51 @@ const proposeTrade = () => {
 </script>
 
 <template>
-    <Card class="overflow-hidden hover:shadow-lg transition-shadow">
+    <Card class="overflow-hidden hover:shadow-lg transition-shadow" :class="{ 'opacity-60': owned === false }">
         <CardHeader class="p-4 pb-2">
             <div class="flex items-start justify-between">
                 <CardTitle class="text-base line-clamp-1">
                     {{ card.name }}
                 </CardTitle>
-                <Badge v-if="quantity" variant="secondary" class="ml-2 shrink-0">
+                <Badge v-if="quantity && quantity > 0" variant="secondary" class="ml-2 shrink-0">
                     × {{ quantity }}
+                </Badge>
+                <Badge v-else-if="owned === false" variant="destructive" class="ml-2 shrink-0">
+                    Verrouillé
                 </Badge>
             </div>
         </CardHeader>
 
         <CardContent class="p-4 pt-0">
             <!-- Image de la carte -->
-            <div class="aspect-[3/4] rounded-lg overflow-hidden bg-muted mb-3">
+            <div class="aspect-[3/4] rounded-lg overflow-hidden bg-muted mb-3 relative">
                 <img
                     :src="card.image"
                     :alt="card.name"
                     class="w-full h-full object-cover"
+                    :class="{ 'grayscale': owned === false }"
                 />
+                <!-- Overlay pour les cartes non possédées -->
+                <div
+                    v-if="owned === false"
+                    class="absolute inset-0 bg-black/40 flex items-center justify-center"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="48"
+                        height="48"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="text-white"
+                    >
+                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                </div>
             </div>
 
             <!-- Informations de la carte -->
