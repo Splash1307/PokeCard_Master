@@ -35,13 +35,7 @@ class Card extends Model
         return $this->belongsTo(Rarity::class);
     }
 
-    // Le type principal de la carte
-    public function type()
-    {
-        return $this->belongsTo(Type::class, 'primaryType');
-    }
-
-    // Le type principal (alias)
+    // Le type principal
     public function primaryType()
     {
         return $this->belongsTo(Type::class, 'primaryType');
@@ -57,5 +51,29 @@ class Card extends Model
     public function set()
     {
         return $this->belongsTo(Set::class);
+    }
+
+    // Les échanges où la carte est offerte
+    public function offeredTrades()
+    {
+        return $this->hasMany(Trade::class, 'offered_card_id');
+    }
+
+    // Les échanges où la carte est demandée
+    public function requestedTrades()
+    {
+        return $this->hasMany(Trade::class, 'requested_card_id');
+    }
+
+    // Les requirements qui ciblent cette carte (via requirement_cards, demande de défis)
+    public function requirementCards()
+    {
+        return $this->hasMany(RequirementCard::class);
+    }
+
+    // Les dons de cette carte dans les défis
+    public function challengeDonations()
+    {
+        return $this->hasMany(ChallengeDonation::class);
     }
 }

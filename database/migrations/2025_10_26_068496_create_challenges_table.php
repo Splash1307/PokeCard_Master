@@ -9,9 +9,10 @@ return new class extends Migration {
         Schema::create('challenges', function (Blueprint $table) {
             $table->id();
             $table->string('title', 50);
-            $table->string('description', 255);
-            $table->dateTime('startDate');
-            $table->dateTime('endDate');
+            $table->string('description', 255)->nullable();
+            $table->dateTime('start_date');
+            $table->dateTime('end_date');
+            $table->enum('status',['Actif', 'Inactif', 'Archivé'])->default('Actif');
             $table->integer('reward');
         });
     }

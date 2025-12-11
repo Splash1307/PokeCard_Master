@@ -84,4 +84,22 @@ class User extends Authenticatable
     {
         return $this->hasMany(Trade::class, 'responder_id');
     }
+
+    // Les dons faits par l'utilisateur pour des défis
+    public function challengeDonations()
+    {
+        return $this->hasMany(ChallengeDonation::class);
+    }
+
+    // La progression de l'utilisateur sur chaque requirement (demande du défi)
+    public function requirementProgresses()
+    {
+        return $this->hasMany(UserRequirementProgress::class);
+    }
+
+    // Les défis auxquels l'utilisateur participe et leur statut
+    public function userChallenges()
+    {
+        return $this->hasMany(UserChallenge::class);
+    }
 }

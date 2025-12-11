@@ -23,7 +23,25 @@ class UsersSeeder extends Seeder
             'role_id' => 1,
         ]);
 
-        for ($i = 1; $i <= 20; $i++) {
+        DB::table('users')->insert([
+            'pseudo' => 'Player1',
+            'email' => 'player1@example.com',
+            'password' => Hash::make('password'),
+            'coin' => 999999,
+            'lastConnexionAt' => Carbon::now(),
+            'role_id' => 2,
+        ]);
+
+        DB::table('users')->insert([
+            'pseudo' => 'Player2',
+            'email' => 'player2@example.com',
+            'password' => Hash::make('password'),
+            'coin' => 999999,
+            'lastConnexionAt' => Carbon::now(),
+            'role_id' => 2,
+        ]);
+
+        for ($i = 1; $i <= 5; $i++) {
             DB::table('users')->insert([
                 'pseudo' => $faker->firstName . ' ' . $faker->lastName,
                 'email' => $faker->unique()->safeEmail(),
@@ -34,6 +52,6 @@ class UsersSeeder extends Seeder
             ]);
         }
 
-        echo "✔️ 1 admin et 20 utilisateurs générés avec succès.\n";
+        echo "✔️ 1 admin et 7 utilisateurs générés avec succès.\n";
     }
 }
