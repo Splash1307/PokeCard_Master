@@ -18,7 +18,7 @@ class CollectionController extends Controller
         // Récupérer la collection de l'utilisateur
         $userCollection = Collection::with([
             'card.rarity',
-            'card.type',
+            'card.primaryType',
             'card.set.serie',
             'card.set'
         ])
@@ -28,7 +28,7 @@ class CollectionController extends Controller
             ->toArray();
 
         // Récupérer toutes les cartes avec leurs relations, triées par série, set, et localId
-        $allCards = Card::with(['rarity', 'type', 'set.serie', 'set'])
+        $allCards = Card::with(['rarity', 'primaryType', 'set.serie', 'set'])
             ->whereHas('set.serie') // S'assurer que la carte a une série
             ->orderBy('localId')
             ->get()
@@ -42,7 +42,7 @@ class CollectionController extends Controller
                     'attack' => $card->attack,
                     'defense' => $card->defense,
                     'rarity' => $card->rarity,
-                    'type' => $card->type,
+                    'primaryType' => $card->primaryType,
                     'set' => [
                         'id' => $card->set->id,
                         'name' => $card->set->name,

@@ -21,9 +21,9 @@ class TradeController extends Controller
         $trades = Trade::with([
             'creator',
             'offeredCard.rarity',
-            'offeredCard.type',
+            'offeredCard.primaryType',
             'requestedCard.rarity',
-            'requestedCard.type',
+            'requestedCard.primaryType',
             'requestedCard.set',
             'offeredCard.set',
             'requestedCard.set.serie',
@@ -50,9 +50,9 @@ class TradeController extends Controller
         $createdTrades = Trade::with([
             'creator',
             'offeredCard.rarity',
-            'offeredCard.type',
+            'offeredCard.primaryType',
             'requestedCard.rarity',
-            'requestedCard.type',
+            'requestedCard.primaryType',
             'requestedCard.set',
             'offeredCard.set',
             'requestedCard.set.serie',
@@ -66,9 +66,9 @@ class TradeController extends Controller
         $respondedTrades = Trade::with([
             'creator',
             'offeredCard.rarity',
-            'offeredCard.type',
+            'offeredCard.primaryType',
             'requestedCard.rarity',
-            'requestedCard.type'
+            'requestedCard.primaryType'
         ])
             ->where('responder_id', $user->id)
             ->latest()

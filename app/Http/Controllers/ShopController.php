@@ -23,7 +23,7 @@ class ShopController extends Controller
             ->toArray();
 
         // Récupérer toutes les cartes avec leurs prix (basés sur la rareté)
-        $allCards = Card::with(['rarity', 'type', 'set.serie'])
+        $allCards = Card::with(['rarity', 'primaryType', 'set.serie'])
             ->orderBy('name')
             ->get()
             ->map(function ($card) use ($userCollection) {
@@ -37,7 +37,7 @@ class ShopController extends Controller
                         'name' => $card->rarity->name,
                         'price' => $card->rarity->price,
                     ] : null,
-                    'type' => $card->type,
+                    'primaryType' => $card->primaryType,
                     'set' => $card->set,
                     'owned' => isset($userCollection[$card->id]),
                     'quantity' => $userCollection[$card->id] ?? 0,

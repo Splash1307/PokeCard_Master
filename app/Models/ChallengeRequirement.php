@@ -13,7 +13,7 @@ use HasFactory;
 
     protected $fillable = [
         'challenge_id',
-        'type',
+        'primaryType',
         'set_id',
         'target_count',
     ];

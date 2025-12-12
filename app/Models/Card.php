@@ -76,4 +76,6 @@ class Card extends Model
     {
         return $this->hasMany(ChallengeDonation::class);
     }
+
+
 }
