@@ -13,6 +13,9 @@ class CardsSeeder extends Seeder
         $sets = [
             'swsh1' => 216, // nombre de cartes pour swsh1
             'swsh7' => 237,  // nombre de cartes pour swsh7
+            'sv08.5' => 180,  // nombre de cartes pour sv08.5
+            'bw10' => 105,  // nombre de cartes pour bw10
+            'xy11' => 116,  // nombre de cartes pour xy11
         ];
 
         $typeTranslation = [
@@ -25,11 +28,21 @@ class CardsSeeder extends Seeder
             $setId = DB::table('sets')->where('abbreviation', $setAbbr)->value('id');
 
             for ($i = 1; $i <= $cardCount; $i++) {
+
+                // Tentative sans padding (1, 10, 100)
                 $cardId = $setAbbr . '-' . $i;
                 $response = Http::get("https://api.tcgdex.net/v2/fr/cards/$cardId");
 
+                // Si échec → tentative avec padding (001, 010)
                 if (!$response->successful()) {
-                    echo "❌ Carte non trouvée : $cardId" . PHP_EOL;
+                    $padded = str_pad($i, 3, '0', STR_PAD_LEFT);
+                    $cardId = $setAbbr . '-' . $padded;
+                    $response = Http::get("https://api.tcgdex.net/v2/fr/cards/$cardId");
+                }
+
+                // Toujours rien → on passe
+                if (!$response->successful()) {
+                    echo "❌ Carte non trouvée : $setAbbr-$i / $padded" . PHP_EOL;
                     continue;
                 }
 
@@ -56,13 +69,15 @@ class CardsSeeder extends Seeder
                     : null;
 
                 $rarityId = DB::table('rarity')->where('name', ucfirst($rarityName))->value('id') ??
-                    DB::table('rarity')->insertGetId(['name' => ucfirst($rarityName), 'percentageSpawn' => 0]);
+                    DB::table('rarity')->insertGetId([
+                        'name' => ucfirst($rarityName),
+                        'percentageSpawn' => 0
+                    ]);
 
                 $serieName = DB::table('series')
                     ->join('sets', 'series.id', '=', 'sets.serie_id')
                     ->where('sets.id', $setId)
                     ->value('series.abbreviation');
-
 
                 DB::table('cards')->insert([
                     'name' => $card['name'],
@@ -74,8 +89,9 @@ class CardsSeeder extends Seeder
                     'secondaryType' => $secondaryTypeId,
                 ]);
 
-                echo "✔️ Carte ajoutée : " . $card['name'] . " ($cardId)" . PHP_EOL;
+                echo "✔️ Carte ajoutée : {$card['name']} ($cardId)" . PHP_EOL;
             }
+
         }
     }
 }

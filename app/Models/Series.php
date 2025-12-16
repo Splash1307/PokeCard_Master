@@ -16,6 +16,6 @@ class Series extends Model
     // Une série a plusieurs sets
     public function sets()
     {
-        return $this->hasMany(Set::class);
+        return $this->hasMany(Set::class, 'serie_id');
     }
 }

@@ -40,6 +40,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/shop', [App\Http\Controllers\ShopController::class, 'index'])->name('shop.index');
     // Acheter une carte
     Route::post('/shop/purchase/{card}', [App\Http\Controllers\ShopController::class, 'purchase'])->name('shop.purchase');
+
+    // Boosters
+    // Voir la page des boosters
+    Route::get('/boosters', [App\Http\Controllers\BoosterController::class, 'index'])->name('boosters.index');
+    // Ouvrir un booster
+    Route::post('/boosters/{set}/open', [App\Http\Controllers\BoosterController::class, 'open'])->name('boosters.open');
+
+
 });
 
 require __DIR__.'/settings.php';
