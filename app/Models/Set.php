@@ -11,12 +11,12 @@ class Set extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['name', 'series_id', 'abbreviation'];
+    protected $fillable = ['name', 'serie_id', 'abbreviation'];
 
     // Un set appartient à une série
     public function serie()
     {
-        return $this->belongsTo(Series::class);
+        return $this->belongsTo(Series::class, 'serie_id');
     }
 
     // Un set a plusieurs cartes

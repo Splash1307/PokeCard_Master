@@ -14,7 +14,13 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Library, ArrowLeftRight, ShoppingBag } from 'lucide-vue-next';
+import {
+    LayoutGrid,
+    Library,
+    ArrowLeftRight,
+    ShoppingBag,
+    PackageOpen,
+} from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
@@ -38,8 +44,12 @@ const mainNavItems: NavItem[] = [
         href: '/shop',
         icon: ShoppingBag,
     },
+    {
+        title: 'Booster',
+        href: '/boosters',
+        icon: PackageOpen,
+    },
 ];
-
 </script>
 
 <template>
