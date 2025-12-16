@@ -42,7 +42,7 @@ defineProps<{
                 as="button"
                 class="mx-auto block text-sm"
             >
-                Log out
+                Paramètre
             </TextLink>
         </Form>
     </AuthLayout>
