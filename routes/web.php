@@ -13,6 +13,18 @@ Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// Route de debug temporaire
+Route::get('challenges-debug', function () {
+    $user = auth()->user();
+    $challenges = \App\Models\Challenge::where('status', 'Actif')->get();
+
+    return response()->json([
+        'user' => $user ? ['id' => $user->id, 'name' => $user->pseudo] : null,
+        'challenges_count' => $challenges->count(),
+        'challenges' => $challenges->map(fn($c) => ['id' => $c->id, 'title' => $c->title])
+    ]);
+})->middleware(['auth', 'verified'])->name('challenges.debug');
+
 // Routes pour la collection et les échanges de cartes
 Route::middleware(['auth', 'verified'])->group(function () {
 
@@ -36,6 +48,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Ouvrir un booster
     Route::post('/boosters/{set}/open', [App\Http\Controllers\BoosterController::class, 'open'])->name('boosters.open');
 
+    // Challenges
+    // Voir tous les challenges actifs
+    Route::get('/challenges', [App\Http\Controllers\ChallengeController::class, 'index'])->name('challenges.index');
+    // Réclamer la récompense
+    Route::post('/challenges/{challenge}/claim', [App\Http\Controllers\ChallengeController::class, 'claim'])->name('challenges.claim');
 
 });
 

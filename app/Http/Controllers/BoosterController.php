@@ -7,6 +7,7 @@ use App\Models\Series;
 use App\Models\Card;
 use App\Models\Collection;
 use App\Models\Rarity;
+use App\Models\BoosterOpening;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -89,6 +90,16 @@ class BoosterController extends Controller
                 $collection->save();
             }
         }
+
+        // Enregistrer l'ouverture du booster pour les challenges
+        BoosterOpening::create([
+            'user_id' => $user->id,
+            'set_id' => $set->id,
+            'opened_at' => now(),
+        ]);
+
+        // Vérifier et mettre à jour la progression des challenges
+        ChallengeController::checkAndUpdateProgress($user->id);
 
         return Inertia::render('Booster/Opening', [
             'cards' => $cards,

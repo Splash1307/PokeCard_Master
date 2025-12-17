@@ -21,6 +21,7 @@ import {
     ShoppingBag,
     PackageOpen,
     Shield,
+    Trophy,
 } from 'lucide-vue-next';
 import { computed } from 'vue';
 import AppLogo from './AppLogo.vue';
@@ -52,6 +53,11 @@ const mainNavItems = computed<NavItem[]>(() => {
             title: 'Booster',
             href: '/boosters',
             icon: PackageOpen,
+        },
+        {
+            title: 'Challenges',
+            href: '/challenges',
+            icon: Trophy,
         },
     ];
 
