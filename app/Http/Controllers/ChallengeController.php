@@ -6,6 +6,9 @@ use App\Models\Challenge;
 use App\Models\UserChallenge;
 use App\Models\UserRequirementProgress;
 use App\Models\ChallengeRequirement;
+use App\Models\ChallengeDonation;
+use App\Models\Collection;
+use App\Models\Trade;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -38,7 +41,7 @@ class ChallengeController extends Controller
                 );
 
                 // Calculer la progression totale
-                $requirements = $challenge->requirements->map(function ($req) use ($user) {
+                $requirements = $challenge->requirements->map(function ($req) use ($user, $challenge) {
                     // Récupérer ou créer la progression du requirement
                     $progress = UserRequirementProgress::firstOrCreate(
                         [
@@ -47,6 +50,7 @@ class ChallengeController extends Controller
                         ],
                         [
                             'progress_count' => 0,
+                            'updated_at' => now(),
                         ]
                     );
 
@@ -58,12 +62,26 @@ class ChallengeController extends Controller
                         'target_count' => $req->target_count,
                         'progress_count' => $progress->progress_count,
                         'completed' => $progress->completed_at !== null,
-                        'cards' => $req->requirementCards->map(function ($reqCard) {
+                        'cards' => $req->requirementCards->map(function ($reqCard) use ($user, $challenge) {
+                            // Récupérer la quantité possédée par l'utilisateur
+                            $collection = Collection::where('user_id', $user->id)
+                                ->where('card_id', $reqCard->card_id)
+                                ->first();
+                            $ownedQty = $collection ? $collection->nbCard : 0;
+
+                            // Récupérer la quantité déjà donnée au challenge
+                            $donatedQty = ChallengeDonation::where('user_id', $user->id)
+                                ->where('challenge_id', $challenge->id)
+                                ->where('card_id', $reqCard->card_id)
+                                ->sum('qty');
+
                             return [
                                 'card_id' => $reqCard->card_id,
                                 'card_name' => $reqCard->card->name,
                                 'card_image' => $reqCard->card->image,
                                 'required_qty' => $reqCard->required_qty,
+                                'owned_qty' => $ownedQty,
+                                'donated_qty' => $donatedQty,
                             ];
                         })->toArray(),
                     ];
@@ -130,6 +148,164 @@ class ChallengeController extends Controller
     }
 
     /**
+     * Donner une carte à un challenge
+     */
+    public function donateCard(Request $request, Challenge $challenge)
+    {
+        $request->validate([
+            'card_id' => 'required|exists:cards,id',
+            'qty' => 'required|integer|min:1',
+        ]);
+
+        $user = auth()->user();
+        $cardId = $request->card_id;
+        $qty = $request->qty;
+
+        // Vérifier que l'utilisateur possède la carte en quantité suffisante
+        $collection = Collection::where('user_id', $user->id)
+            ->where('card_id', $cardId)
+            ->first();
+
+        if (!$collection || $collection->nbCard < $qty) {
+            return back()->withErrors(['error' => 'Vous ne possédez pas assez de cette carte.']);
+        }
+
+        // Vérifier que la carte fait partie du challenge (type CARD_LIST)
+        $requirementCard = null;
+        $requirement = null;
+
+        foreach ($challenge->requirements()->where('type', 'CARD_LIST')->get() as $req) {
+            $reqCard = $req->requirementCards()->where('card_id', $cardId)->first();
+            if ($reqCard) {
+                $requirementCard = $reqCard;
+                $requirement = $req;
+                break;
+            }
+        }
+
+        if (!$requirementCard) {
+            return back()->withErrors(['error' => 'Cette carte ne fait pas partie de ce challenge.']);
+        }
+
+        // Vérifier que l'utilisateur n'a pas déjà donné le maximum requis
+        $alreadyDonated = ChallengeDonation::where('user_id', $user->id)
+            ->where('challenge_id', $challenge->id)
+            ->where('card_id', $cardId)
+            ->sum('qty');
+
+        if ($alreadyDonated + $qty > $requirementCard->required_qty) {
+            return back()->withErrors(['error' => 'Vous avez déjà donné le maximum requis pour cette carte.']);
+        }
+
+        // Créer l'entrée de donation
+        ChallengeDonation::create([
+            'user_id' => $user->id,
+            'challenge_id' => $challenge->id,
+            'card_id' => $cardId,
+            'qty' => $qty,
+            'donated_at' => now(),
+        ]);
+
+        // Retirer la carte de la collection
+        $collection->nbCard -= $qty;
+        if ($collection->nbCard <= 0) {
+            $collection->delete();
+        } else {
+            $collection->save();
+        }
+
+        // Annuler les échanges incompatibles pour cette carte
+        $this->cancelIncompatibleTrades($user->id, $cardId);
+
+        // Mettre à jour la progression du challenge
+        self::checkAndUpdateProgress($user->id);
+
+        return back()->with('success', "Carte donnée au challenge avec succès !");
+    }
+
+    /**
+     * Attribuer tous les challenges actifs à un nouvel utilisateur
+     * Appelé lors de la création d'un compte
+     */
+    public static function assignActiveChallenges($userId)
+    {
+        // Récupérer tous les challenges actifs
+        $challenges = Challenge::with('requirements')
+            ->where('status', 'Actif')
+            ->get();
+
+        foreach ($challenges as $challenge) {
+            // Créer la participation pour chaque challenge
+            UserChallenge::firstOrCreate(
+                [
+                    'user_id' => $userId,
+                    'challenge_id' => $challenge->id,
+                ],
+                [
+                    'status' => 'En cours',
+                ]
+            );
+
+            // Créer la progression pour chaque requirement
+            foreach ($challenge->requirements as $requirement) {
+                UserRequirementProgress::firstOrCreate(
+                    [
+                        'user_id' => $userId,
+                        'requirement_id' => $requirement->id,
+                    ],
+                    [
+                        'progress_count' => 0,
+                        'updated_at' => now(),
+                    ]
+                );
+            }
+        }
+    }
+
+    /**
+     * Attribuer un challenge spécifique à tous les utilisateurs
+     * Appelé quand un challenge est activé
+     */
+    public static function assignChallengeToAllUsers($challengeId)
+    {
+        $challenge = Challenge::with('requirements')->find($challengeId);
+
+        if (!$challenge || $challenge->status !== 'Actif') {
+            return;
+        }
+
+        // Récupérer tous les utilisateurs
+        $users = \App\Models\User::all();
+
+        foreach ($users as $user) {
+            // Créer la participation pour ce challenge
+            UserChallenge::firstOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'challenge_id' => $challenge->id,
+                ],
+                [
+                    'status' => 'En cours',
+                ]
+            );
+
+            // Créer la progression pour chaque requirement
+            foreach ($challenge->requirements as $requirement) {
+                UserRequirementProgress::firstOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'requirement_id' => $requirement->id,
+                    ],
+                    [
+                        'progress_count' => 0,
+                        'updated_at' => now(),
+                    ]
+                );
+            }
+        }
+    }
+
+    /**
      * Vérifier et mettre à jour la progression d'un utilisateur sur un challenge
      * Appelé automatiquement après ouverture de booster ou autre action
      */
@@ -169,6 +345,7 @@ class ChallengeController extends Controller
                     ],
                     [
                         'progress_count' => 0,
+                        'updated_at' => now(),
                     ]
                 );
 
@@ -209,18 +386,17 @@ class ChallengeController extends Controller
     {
         switch ($requirement->type) {
             case 'CARD_LIST':
-                // Pour CARD_LIST, vérifier combien de cartes l'utilisateur possède
-                $totalOwned = 0;
+                // Pour CARD_LIST, compter les cartes données au challenge
+                $totalDonated = 0;
                 foreach ($requirement->requirementCards as $reqCard) {
-                    $collection = $user->collections()
+                    $donated = ChallengeDonation::where('user_id', $user->id)
+                        ->where('challenge_id', $requirement->challenge_id)
                         ->where('card_id', $reqCard->card_id)
-                        ->first();
+                        ->sum('qty');
 
-                    if ($collection) {
-                        $totalOwned += min($collection->nbCard, $reqCard->required_qty);
-                    }
+                    $totalDonated += min($donated, $reqCard->required_qty);
                 }
-                return $totalOwned;
+                return $totalDonated;
 
             case 'OPEN_PACKS':
                 // Compter les boosters ouverts de ce set
@@ -242,6 +418,38 @@ class ChallengeController extends Controller
 
             default:
                 return 0;
+        }
+    }
+
+    /**
+     * Annuler les échanges incompatibles pour un utilisateur et une carte
+     */
+    private function cancelIncompatibleTrades($userId, $cardId)
+    {
+        // Récupérer la quantité restante de la carte
+        $collection = Collection::where('user_id', $userId)
+            ->where('card_id', $cardId)
+            ->first();
+
+        $availableQty = $collection ? $collection->nbCard : 0;
+
+        // Récupérer tous les échanges "pending" où l'utilisateur offre cette carte
+        $pendingTrades = Trade::where('status', 'pending')
+            ->where('creator_id', $userId)
+            ->where('offered_card_id', $cardId)
+            ->get();
+
+        // Compter combien de cartes sont nécessaires pour tous les échanges
+        $requiredQty = $pendingTrades->count();
+
+        // Si l'utilisateur n'a pas assez de cartes pour tous les échanges, annuler les plus récents
+        if ($availableQty < $requiredQty) {
+            $toCancel = $requiredQty - $availableQty;
+            $tradesToCancel = $pendingTrades->sortByDesc('created_at')->take($toCancel);
+
+            foreach ($tradesToCancel as $trade) {
+                $trade->update(['status' => 'cancelled']);
+            }
         }
     }
 }

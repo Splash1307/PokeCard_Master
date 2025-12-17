@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\ChallengeController as UserChallengeController;
 use App\Models\Challenge;
 use App\Models\ChallengeRequirement;
 use App\Models\RequirementCard;
@@ -61,6 +62,11 @@ class ChallengeController extends Controller
         $challenge->update([
             'status' => $newStatus
         ]);
+
+        // Si le challenge est activé, l'attribuer à tous les utilisateurs
+        if ($newStatus === 'Actif') {
+            UserChallengeController::assignChallengeToAllUsers($challenge->id);
+        }
 
         return back()->with('success', "Le challenge a été {$newStatus}.");
     }
@@ -155,6 +161,11 @@ class ChallengeController extends Controller
             }
         }
 
+        // Si le challenge est créé avec le statut "Actif", l'attribuer à tous les utilisateurs
+        if ($validated['status'] === 'Actif') {
+            UserChallengeController::assignChallengeToAllUsers($challenge->id);
+        }
+
         return redirect()->route('admin.challenges.index')
             ->with('success', 'Challenge créé avec succès !');
     }
@@ -244,6 +255,10 @@ class ChallengeController extends Controller
             'requirements.*.cards.*.required_qty' => 'required_if:requirements.*.type,CARD_LIST|integer|min:1',
         ]);
 
+        // Vérifier si le statut devient "Actif"
+        $wasInactive = $challenge->status !== 'Actif';
+        $becomesActive = $validated['status'] === 'Actif';
+
         // Mettre à jour le challenge
         $challenge->update([
             'title' => $validated['title'],
@@ -284,6 +299,11 @@ class ChallengeController extends Controller
                     ]);
                 }
             }
+        }
+
+        // Si le challenge passe à "Actif", l'attribuer à tous les utilisateurs
+        if ($wasInactive && $becomesActive) {
+            UserChallengeController::assignChallengeToAllUsers($challenge->id);
         }
 
         return redirect()->route('admin.challenges.index')

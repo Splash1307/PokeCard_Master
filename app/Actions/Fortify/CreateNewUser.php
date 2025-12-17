@@ -3,6 +3,7 @@
 namespace App\Actions\Fortify;
 
 use App\Models\User;
+use App\Http\Controllers\ChallengeController;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
@@ -30,7 +31,7 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $this->passwordRules(),
         ])->validate();
 
-        return User::create([
+        $user = User::create([
             'pseudo' => $input['pseudo'],
             'email' => $input['email'],
             'password' => $input['password'],
@@ -38,5 +39,10 @@ class CreateNewUser implements CreatesNewUsers
             'role_id' => 2,
             'lastConnexionAt' => now(),
         ]);
+
+        // Attribuer automatiquement tous les challenges actifs au nouvel utilisateur
+        ChallengeController::assignActiveChallenges($user->id);
+
+        return $user;
     }
 }

@@ -2,14 +2,18 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import TradeCard from '@/components/Trade/TradeCard.vue';
 import { Button } from '@/components/ui/button';
-import { Head, Link } from '@inertiajs/vue3';
+import { Input } from '@/components/ui/input';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { type BreadcrumbItem } from '@/types';
+import { ref, watch } from 'vue';
+import { useDebounceFn } from '@vueuse/core';
 
 // Définir les propriétés que la page reçoit du contrôleur
-defineProps<{
+const props = defineProps<{
     trades: Array<{
         id: number;
         status: string;
+        can_accept?: boolean;
         creator: {
             name: string;
         };
@@ -59,6 +63,9 @@ defineProps<{
         };
         created_at: string;
     }>;
+    filters: {
+        search: string;
+    };
 }>();
 
 // Définir les breadcrumbs (fil d'Ariane)
@@ -68,6 +75,20 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/trades',
     },
 ];
+
+// Recherche
+const search = ref(props.filters.search || '');
+
+const performSearch = useDebounceFn(() => {
+    router.get('/trades', { search: search.value }, {
+        preserveState: true,
+        preserveScroll: true,
+    });
+}, 300);
+
+watch(search, () => {
+    performSearch();
+});
 </script>
 
 <template>
@@ -91,6 +112,35 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </Link>
             </div>
 
+            <!-- Barre de recherche -->
+            <div class="flex items-center gap-4">
+                <div class="relative flex-1 max-w-md">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                    >
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.3-4.3"/>
+                    </svg>
+                    <Input
+                        v-model="search"
+                        type="text"
+                        placeholder="Rechercher une carte (offerte ou demandée)..."
+                        class="pl-10"
+                    />
+                </div>
+                <div v-if="search" class="text-sm text-muted-foreground">
+                    {{ trades.length }} résultat(s)
+                </div>
+            </div>
 
             <!-- Liste des offres d'échange -->
             <div v-if="trades.length > 0" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             CardsSeeder::class,
             RolesSeeder::class,
             UsersSeeder::class,
+            CollectionSeeder::class,
+            TradeSeeder::class,
             ChallengeSeeder::class,
             ChallengeStructureSeeder::class,
         ]);

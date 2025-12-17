@@ -53,6 +53,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/challenges', [App\Http\Controllers\ChallengeController::class, 'index'])->name('challenges.index');
     // Réclamer la récompense
     Route::post('/challenges/{challenge}/claim', [App\Http\Controllers\ChallengeController::class, 'claim'])->name('challenges.claim');
+    // Donner une carte au challenge
+    Route::post('/challenges/{challenge}/donate', [App\Http\Controllers\ChallengeController::class, 'donateCard'])->name('challenges.donate');
 
 });
 

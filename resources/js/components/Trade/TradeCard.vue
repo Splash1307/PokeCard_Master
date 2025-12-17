@@ -10,6 +10,8 @@ const props = defineProps<{
     trade: {
         id: number;
         status: string;
+        can_accept?: boolean; // True si l'utilisateur peut accepter cet échange
+        is_valid?: boolean; // True si l'échange créé par l'utilisateur est encore valide
         creator: {
             name: string;
         };
@@ -213,16 +215,24 @@ const imageUrl = computed(() => {
         </CardContent>
 
         <!-- Actions pour mes offres créées : seulement Annuler -->
-        <CardFooter v-if="showActions && trade.status === 'pending' && isMyOffer" class="flex gap-2">
+        <CardFooter v-if="showActions && trade.status === 'pending' && isMyOffer" class="flex flex-col gap-2">
+            <p v-if="trade.is_valid === false" class="text-xs text-destructive text-center">
+                ⚠️ Vous ne possédez plus cette carte. Cet échange sera automatiquement annulé.
+            </p>
             <Button @click="cancelTrade" class="w-full" variant="destructive">
                 Annuler mon offre
             </Button>
         </CardFooter>
 
         <!-- Actions pour les offres des autres : seulement Accepter -->
-        <CardFooter v-else-if="showActions && trade.status === 'pending' && !isMyOffer" class="flex gap-2">
-            <Button @click="acceptTrade" class="w-full" variant="default">
-                Accepter l'échange
+        <CardFooter v-else-if="showActions && trade.status === 'pending' && !isMyOffer" class="flex flex-col gap-2">
+            <Button
+                @click="acceptTrade"
+                class="w-full"
+                variant="default"
+                :disabled="trade.can_accept === false"
+            >
+                {{ trade.can_accept === false ? 'Échange impossible' : 'Accepter l\'échange' }}
             </Button>
         </CardFooter>
     </Card>
