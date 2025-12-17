@@ -213,9 +213,6 @@ const getCardState = (card: any) => {
                                         <div v-if="getCardState(card) !== 'completed'" class="flex items-center gap-3 text-xs text-muted-foreground">
                                             <span>Requis: {{ card.required_qty }}</span>
                                             <span>Possédée: {{ card.owned_qty }}</span>
-                                            <span class="font-semibold" :class="card.donated_qty > 0 ? 'text-green-600' : ''">
-                                                Donnée: {{ card.donated_qty }}
-                                            </span>
                                         </div>
 
                                         <Button
