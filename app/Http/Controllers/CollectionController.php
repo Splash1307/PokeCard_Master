@@ -19,6 +19,7 @@ class CollectionController extends Controller
         $userCollection = Collection::with([
             'card.rarity',
             'card.primaryType',
+            'card.secondaryType',
             'card.set.serie',
             'card.set'
         ])
@@ -27,9 +28,9 @@ class CollectionController extends Controller
             ->pluck('nbCard', 'card_id')
             ->toArray();
 
-        // Récupérer toutes les cartes avec leurs relations, triées par série, set, et localId
-        $allCards = Card::with(['rarity', 'primaryType', 'set.serie', 'set'])
-            ->whereHas('set.serie') // S'assurer que la carte a une série
+        // Récupérer toutes les cartes avec leurs relations
+        $allCards = Card::with(['rarity', 'primaryType', 'secondaryType', 'set.serie', 'set'])
+            ->whereHas('set.serie')
             ->orderBy('localId')
             ->get()
             ->map(function ($card) use ($userCollection) {
@@ -38,11 +39,18 @@ class CollectionController extends Controller
                     'localId' => $card->localId,
                     'name' => $card->name,
                     'image' => $card->image,
-                    'hp' => $card->hp,
-                    'attack' => $card->attack,
-                    'defense' => $card->defense,
-                    'rarity' => $card->rarity,
-                    'primaryType' => $card->primaryType,
+                    'rarity' => $card->rarity ? [
+                        'name' => $card->rarity->name,
+                        'price' => $card->rarity->price,
+                    ] : null,
+                    'primaryType' => $card->primaryType ? [
+                        'name' => $card->primaryType->name,
+                        'logo' => $card->primaryType->logo,
+                    ] : null,
+                    'secondaryType' => $card->secondaryType ? [
+                        'name' => $card->secondaryType->name,
+                        'logo' => $card->secondaryType->logo,
+                    ] : null,
                     'set' => [
                         'id' => $card->set->id,
                         'name' => $card->set->name,

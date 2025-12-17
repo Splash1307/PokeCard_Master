@@ -13,8 +13,8 @@ return new class extends Migration {
             $table->string('image')->nullable();
             $table->foreignId('set_id')->constrained('sets');
             $table->foreignId('rarity_id')->constrained('rarity');
-            $table->foreignId('primaryType')->nullable()->constrained('types');
-            $table->foreignId('secondaryType')->nullable()->constrained('types');
+            $table->foreignId('primaryType_id')->nullable()->constrained('types');
+            $table->foreignId('secondaryType_id')->nullable()->constrained('types');
         });
     }
 

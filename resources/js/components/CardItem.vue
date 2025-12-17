@@ -1,23 +1,31 @@
 <script setup lang="ts">
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 
 const props = defineProps<{
     card: {
         id: number;
         name: string;
         image: string;
-        hp?: number;
-        attack?: number;
-        defense?: number;
         localId?: number;
         rarity?: {
             name: string;
             price?: number;
         };
-        type?: {
+        primaryType?: {
             name: string;
+            logo?: string;
+        };
+        secondaryType?: {
+            name: string;
+            logo?: string;
         };
         set?: {
             name: string;
@@ -31,12 +39,12 @@ const props = defineProps<{
     quantity?: number;
     owned?: boolean;
     showTradeButton?: boolean;
-    showPurchaseButton?: boolean; // Nouvelle prop
+    showPurchaseButton?: boolean;
 }>();
 
 const emit = defineEmits<{
     trade: [cardId: number];
-    purchase: [cardId: number]; // Nouvel événement
+    purchase: [cardId: number];
 }>();
 
 const proposeTrade = () => {
@@ -49,32 +57,45 @@ const proposePurchase = () => {
 </script>
 
 <template>
-    <Card class="overflow-hidden hover:shadow-lg transition-shadow" :class="{ 'opacity-60': owned === false }">
+    <Card
+        class="overflow-hidden transition-shadow hover:shadow-lg"
+        :class="{ 'opacity-60': owned === false }"
+    >
         <CardHeader class="p-4 pb-2">
             <div class="flex items-start justify-between">
-                <CardTitle class="text-base line-clamp-1">
+                <CardTitle class="line-clamp-1 text-base">
                     {{ card.name }}
                 </CardTitle>
-                <Badge v-if="quantity && quantity > 0" variant="secondary" class="ml-2 shrink-0">
+                <Badge
+                    v-if="quantity && quantity > 0"
+                    variant="secondary"
+                    class="ml-2 shrink-0"
+                >
                     × {{ quantity }}
                 </Badge>
-                <Badge v-else-if="owned === false" variant="destructive" class="ml-2 shrink-0">
+                <Badge
+                    v-else-if="owned === false"
+                    variant="destructive"
+                    class="ml-2 shrink-0"
+                >
                     Verrouillé
                 </Badge>
             </div>
         </CardHeader>
 
         <CardContent class="p-4 pt-0">
-            <div class="aspect-[3/4] rounded-lg overflow-hidden bg-muted mb-3 relative">
+            <div
+                class="relative mb-3 aspect-[3/4] overflow-hidden rounded-lg bg-muted"
+            >
                 <img
                     :src="card.image"
                     :alt="card.name"
-                    class="w-full h-full object-cover"
-                    :class="{ 'grayscale': owned === false }"
+                    class="h-full w-full object-cover"
+                    :class="{ grayscale: owned === false }"
                 />
                 <div
                     v-if="owned === false"
-                    class="absolute inset-0 bg-black/40 flex items-center justify-center"
+                    class="absolute inset-0 flex items-center justify-center bg-black/40"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -88,32 +109,51 @@ const proposePurchase = () => {
                         stroke-linejoin="round"
                         class="text-white"
                     >
-                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+                        <rect
+                            width="18"
+                            height="11"
+                            x="3"
+                            y="11"
+                            rx="2"
+                            ry="2"
+                        />
                         <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                     </svg>
                 </div>
             </div>
 
             <div class="space-y-2">
-                <div v-if="card.hp || card.attack || card.defense" class="grid grid-cols-3 gap-2 text-xs">
-                    <div v-if="card.hp" class="text-center">
-                        <div class="text-muted-foreground">HP</div>
-                        <div class="font-semibold">{{ card.hp }}</div>
-                    </div>
-                    <div v-if="card.attack" class="text-center">
-                        <div class="text-muted-foreground">ATK</div>
-                        <div class="font-semibold">{{ card.attack }}</div>
-                    </div>
-                    <div v-if="card.defense" class="text-center">
-                        <div class="text-muted-foreground">DEF</div>
-                        <div class="font-semibold">{{ card.defense }}</div>
-                    </div>
-                </div>
-
                 <div class="flex flex-wrap gap-1">
-                    <Badge v-if="card.type" variant="outline" class="text-xs">
-                        {{ card.type.name }}
+                    <!-- Type primaire -->
+                    <Badge
+                        v-if="card.primaryType"
+                        variant="outline"
+                        class="flex items-center gap-1 text-xs"
+                    >
+                        <img
+                            v-if="card.primaryType.logo"
+                            :src="card.primaryType.logo"
+                            :alt="card.primaryType.name"
+                            class="h-4 w-4 object-contain"
+                        />
+                        <span>{{ card.primaryType.name }}</span>
                     </Badge>
+
+                    <!-- Type secondaire -->
+                    <Badge
+                        v-if="card.secondaryType"
+                        variant="outline"
+                        class="flex items-center gap-1 text-xs"
+                    >
+                        <img
+                            v-if="card.secondaryType.logo"
+                            :src="card.secondaryType.logo"
+                            :alt="card.secondaryType.name"
+                            class="h-4 w-4 object-contain"
+                        />
+                        <span>{{ card.secondaryType.name }}</span>
+                    </Badge>
+
                     <Badge v-if="card.rarity" variant="outline" class="text-xs">
                         {{ card.rarity.name }}
                     </Badge>
@@ -126,7 +166,7 @@ const proposePurchase = () => {
             </div>
         </CardContent>
 
-        <CardFooter class="p-4 pt-0 flex gap-2">
+        <CardFooter class="flex gap-2 p-4 pt-0">
             <!-- Bouton d'échange (uniquement si possédée) -->
             <Button
                 v-if="showTradeButton && owned"
@@ -146,7 +186,8 @@ const proposePurchase = () => {
                 :variant="owned ? 'outline' : 'default'"
             >
                 <span v-if="card.rarity?.price">
-                    {{ owned ? 'Racheter' : 'Acheter' }} - {{ card.rarity.price }} 💰
+                    {{ owned ? 'Racheter' : 'Acheter' }} -
+                    {{ card.rarity.price }} 💰
                 </span>
                 <span v-else>Prix non défini</span>
             </Button>

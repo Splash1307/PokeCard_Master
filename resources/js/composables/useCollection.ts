@@ -1,4 +1,3 @@
-// composables/useCollection.ts
 import { computed, ref, type Ref } from 'vue';
 
 export type Card = {
@@ -15,8 +14,13 @@ export type Card = {
         name: string;
         price?: number;
     };
-    type?: {
+    primaryType?: {
         name: string;
+        logo?: string;
+    };
+    secondaryType?: {
+        name: string;
+        logo?: string;
     };
     set?: {
         id: number;

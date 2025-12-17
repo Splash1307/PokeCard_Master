@@ -18,12 +18,6 @@ class CardsSeeder extends Seeder
             'xy11' => 116,  // nombre de cartes pour xy11
         ];
 
-        $typeTranslation = [
-            'Metal' => 'Acier',
-            'Obscurité' => 'Ténèbres',
-            'Incolore' => 'Normal',
-        ];
-
         foreach ($sets as $setAbbr => $cardCount) {
             $setId = DB::table('sets')->where('abbreviation', $setAbbr)->value('id');
 
@@ -52,14 +46,6 @@ class CardsSeeder extends Seeder
                 $secondaryTypeName = $card['types'][1] ?? null;
                 $rarityName = $card['rarity'] ?? 'Commune';
 
-                // Traduction des types
-                if (isset($typeTranslation[$primaryTypeName])) {
-                    $primaryTypeName = $typeTranslation[$primaryTypeName];
-                }
-                if (isset($typeTranslation[$secondaryTypeName])) {
-                    $secondaryTypeName = $typeTranslation[$secondaryTypeName];
-                }
-
                 $primaryTypeId = $primaryTypeName
                     ? DB::table('types')->where('name', ucfirst($primaryTypeName))->value('id')
                     : null;
@@ -85,8 +71,8 @@ class CardsSeeder extends Seeder
                     'image' => "/assets/cards/{$serieName}/{$setAbbr}/{$card['localId']}.png",
                     'set_id' => $setId,
                     'rarity_id' => $rarityId,
-                    'primaryType' => $primaryTypeId,
-                    'secondaryType' => $secondaryTypeId,
+                    'primaryType_id' => $primaryTypeId,
+                    'secondaryType_id' => $secondaryTypeId,
                 ]);
 
                 echo "✔️ Carte ajoutée : {$card['name']} ($cardId)" . PHP_EOL;

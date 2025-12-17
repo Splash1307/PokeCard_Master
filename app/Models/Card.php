@@ -19,8 +19,8 @@ class Card extends Model
         'image',
         'set_id',
         'rarity_id',
-        'primaryType',
-        'secondaryType',
+        'primaryType_id',
+        'secondaryType_id',
     ];
 
     // Une carte peut être dans plusieurs collections
@@ -38,13 +38,13 @@ class Card extends Model
     // Le type principal
     public function primaryType()
     {
-        return $this->belongsTo(Type::class, 'primaryType');
+        return $this->belongsTo(Type::class, 'primaryType_id');
     }
 
     // Le type secondaire
     public function secondaryType()
     {
-        return $this->belongsTo(Type::class, 'secondaryType');
+        return $this->belongsTo(Type::class, 'secondaryType_id');
     }
 
     // Une carte appartient à un set
