@@ -17,25 +17,17 @@ Route::get('dashboard', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
 
     // Collection
-    // Voir ma collection de cartes
     Route::get('/collection', [App\Http\Controllers\CollectionController::class, 'index'])->name('collection.index');
 
 
     // Trades
-
-    // Voir toutes les offres d'échange disponibles
     Route::get('/trades', [App\Http\Controllers\TradeController::class, 'index'])->name('trades.index');
-    // Voir mes échanges (créés et acceptés)
     Route::get('/trades/my', [App\Http\Controllers\TradeController::class, 'myTrades'])->name('trades.my');
-    // Créer une nouvelle offre d'échange
     Route::post('/trades', [App\Http\Controllers\TradeController::class, 'store'])->name('trades.store');
-    // Accepter une offre d'échange
     Route::post('/trades/{trade}/accept', [App\Http\Controllers\TradeController::class, 'accept'])->name('trades.accept');
-    // Annuler une offre d'échange
     Route::post('/trades/{trade}/cancel', [App\Http\Controllers\TradeController::class, 'cancel'])->name('trades.cancel');
 
     // Shop
-    // Acheter une carte
     Route::post('/shop/purchase/{card}', [App\Http\Controllers\ShopController::class, 'purchase'])->name('shop.purchase');
 
     // Boosters
@@ -45,6 +37,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/boosters/{set}/open', [App\Http\Controllers\BoosterController::class, 'open'])->name('boosters.open');
 
 
+});
+
+// Routes Admin
+Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+
+    // Gestion des challenges
+    Route::get('/challenges', [App\Http\Controllers\Admin\ChallengeController::class, 'index'])->name('challenges.index');
+    Route::get('/challenges/create', [App\Http\Controllers\Admin\ChallengeController::class, 'create'])->name('challenges.create');
+    Route::post('/challenges', [App\Http\Controllers\Admin\ChallengeController::class, 'store'])->name('challenges.store');
+    Route::get('/challenges/{challenge}/edit', [App\Http\Controllers\Admin\ChallengeController::class, 'edit'])->name('challenges.edit');
+    Route::put('/challenges/{challenge}', [App\Http\Controllers\Admin\ChallengeController::class, 'update'])->name('challenges.update');
+    Route::post('/challenges/{challenge}/toggle-status', [App\Http\Controllers\Admin\ChallengeController::class, 'toggleStatus'])->name('challenges.toggle-status');
+    Route::delete('/challenges/{challenge}', [App\Http\Controllers\Admin\ChallengeController::class, 'destroy'])->name('challenges.destroy');
 });
 
 require __DIR__.'/settings.php';
