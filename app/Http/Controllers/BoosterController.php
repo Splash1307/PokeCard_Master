@@ -219,9 +219,6 @@ class BoosterController extends Controller
             'name' => $card->name,
             'localId' => $card->localId,
             'image' => $card->image,
-            'hp' => $card->hp ?? null,
-            'attack' => $card->attack ?? null,
-            'defense' => $card->defense ?? null,
             'rarity' => $card->rarity ? [
                 'id' => $card->rarity->id,
                 'name' => $card->rarity->name,

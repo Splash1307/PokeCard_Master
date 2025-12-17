@@ -105,17 +105,6 @@ class TradeController extends Controller
             ]);
         }
 
-        // Vérifier que l'utilisateur ne possède pas déjà la carte demandée
-        $alreadyHasCard = Collection::where('user_id', $user->id)
-            ->where('card_id', $validated['requested_card_id'])
-            ->exists();
-
-        if ($alreadyHasCard) {
-            return back()->withErrors([
-                'requested_card_id' => 'Vous possédez déjà cette carte.'
-            ]);
-        }
-
         // Créer l'offre d'échange
         Trade::create([
             'creator_id' => $user->id,

@@ -40,14 +40,17 @@ class CollectionController extends Controller
                     'name' => $card->name,
                     'image' => $card->image,
                     'rarity' => $card->rarity ? [
+                        'id' => $card->rarity->id, // ✅ Ajouté l'id
                         'name' => $card->rarity->name,
                         'price' => $card->rarity->price,
                     ] : null,
                     'primaryType' => $card->primaryType ? [
+                        'id' => $card->primaryType->id, // ✅ Ajouté l'id
                         'name' => $card->primaryType->name,
                         'logo' => $card->primaryType->logo,
                     ] : null,
                     'secondaryType' => $card->secondaryType ? [
+                        'id' => $card->secondaryType->id, // ✅ Ajouté l'id
                         'name' => $card->secondaryType->name,
                         'logo' => $card->secondaryType->logo,
                     ] : null,
@@ -66,8 +69,9 @@ class CollectionController extends Controller
                 ];
             });
 
-        // Récupérer les cartes disponibles pour les échanges
-        $availableCards = $allCards->filter(fn($card) => !$card['owned'])->values();
+        // ✅ CHANGEMENT : Toutes les cartes au lieu de filtrer
+        // Garde l'info 'owned' pour que le filtre dans CardSelector fonctionne
+        $availableCards = $allCards->values();
 
         return Inertia::render('Collection/Index', [
             'allCards' => $allCards,
