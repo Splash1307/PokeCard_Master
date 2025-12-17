@@ -3,8 +3,6 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-
-// Définir les propriétés que le composant reçoit
 const props = defineProps<{
     card: {
         id: number;
@@ -16,6 +14,7 @@ const props = defineProps<{
         localId?: number;
         rarity?: {
             name: string;
+            price?: number;
         };
         type?: {
             name: string;
@@ -32,16 +31,20 @@ const props = defineProps<{
     quantity?: number;
     owned?: boolean;
     showTradeButton?: boolean;
+    showPurchaseButton?: boolean; // Nouvelle prop
 }>();
 
-// Événements émis par le composant
 const emit = defineEmits<{
     trade: [cardId: number];
+    purchase: [cardId: number]; // Nouvel événement
 }>();
 
-// Fonction pour proposer un échange
 const proposeTrade = () => {
     emit('trade', props.card.id);
+};
+
+const proposePurchase = () => {
+    emit('purchase', props.card.id);
 };
 </script>
 
@@ -62,7 +65,6 @@ const proposeTrade = () => {
         </CardHeader>
 
         <CardContent class="p-4 pt-0">
-            <!-- Image de la carte -->
             <div class="aspect-[3/4] rounded-lg overflow-hidden bg-muted mb-3 relative">
                 <img
                     :src="card.image"
@@ -70,7 +72,6 @@ const proposeTrade = () => {
                     class="w-full h-full object-cover"
                     :class="{ 'grayscale': owned === false }"
                 />
-                <!-- Overlay pour les cartes non possédées -->
                 <div
                     v-if="owned === false"
                     class="absolute inset-0 bg-black/40 flex items-center justify-center"
@@ -93,9 +94,7 @@ const proposeTrade = () => {
                 </div>
             </div>
 
-            <!-- Informations de la carte -->
             <div class="space-y-2">
-                <!-- Statistiques -->
                 <div v-if="card.hp || card.attack || card.defense" class="grid grid-cols-3 gap-2 text-xs">
                     <div v-if="card.hp" class="text-center">
                         <div class="text-muted-foreground">HP</div>
@@ -111,7 +110,6 @@ const proposeTrade = () => {
                     </div>
                 </div>
 
-                <!-- Type et Rareté -->
                 <div class="flex flex-wrap gap-1">
                     <Badge v-if="card.type" variant="outline" class="text-xs">
                         {{ card.type.name }}
@@ -121,7 +119,6 @@ const proposeTrade = () => {
                     </Badge>
                 </div>
 
-                <!-- Set et Série -->
                 <div v-if="card.set" class="text-xs text-muted-foreground">
                     <div v-if="card.set.serie">{{ card.set.serie.name }}</div>
                     <div>{{ card.set.name }}</div>
@@ -129,9 +126,29 @@ const proposeTrade = () => {
             </div>
         </CardContent>
 
-        <CardFooter v-if="showTradeButton" class="p-4 pt-0">
-            <Button @click="proposeTrade" class="w-full" size="sm">
-                Proposer un échange
+        <CardFooter class="p-4 pt-0 flex gap-2">
+            <!-- Bouton d'échange (uniquement si possédée) -->
+            <Button
+                v-if="showTradeButton && owned"
+                @click="proposeTrade"
+                class="flex-1"
+                size="sm"
+            >
+                Échanger
+            </Button>
+
+            <!-- Bouton d'achat (toujours affiché si activé) -->
+            <Button
+                v-if="showPurchaseButton"
+                @click="proposePurchase"
+                :class="showTradeButton && owned ? 'flex-1' : 'w-full'"
+                size="sm"
+                :variant="owned ? 'outline' : 'default'"
+            >
+                <span v-if="card.rarity?.price">
+                    {{ owned ? 'Racheter' : 'Acheter' }} - {{ card.rarity.price }} 💰
+                </span>
+                <span v-else>Prix non défini</span>
             </Button>
         </CardFooter>
     </Card>

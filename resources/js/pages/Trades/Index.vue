@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import TradeCard from '@/components/TradeCard.vue';
+import TradeCard from '@/components/Trade/TradeCard.vue';
 import { Button } from '@/components/ui/button';
 import { Head, Link } from '@inertiajs/vue3';
 import { type BreadcrumbItem } from '@/types';

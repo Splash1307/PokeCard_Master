@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import TradeCard from '@/components/TradeCard.vue';
+import TradeCard from '@/components/Trade/TradeCard.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Head, Link } from '@inertiajs/vue3';
 import { type BreadcrumbItem } from '@/types';
-import { ref } from 'vue';
 
 // Définir les propriétés que la page reçoit du contrôleur
 defineProps<{

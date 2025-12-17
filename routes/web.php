@@ -35,9 +35,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/trades/{trade}/cancel', [App\Http\Controllers\TradeController::class, 'cancel'])->name('trades.cancel');
 
     // Shop
-
-    // Voir la boutique
-    Route::get('/shop', [App\Http\Controllers\ShopController::class, 'index'])->name('shop.index');
     // Acheter une carte
     Route::post('/shop/purchase/{card}', [App\Http\Controllers\ShopController::class, 'purchase'])->name('shop.purchase');
 
