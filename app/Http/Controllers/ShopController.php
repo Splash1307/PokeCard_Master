@@ -79,6 +79,7 @@ class ShopController extends Controller
         $collection->nbCard += 1;
         $collection->save();
 
+        // Redirection avec message de succès
         return redirect()->route('collection.index')->with('success', 'Carte achetée avec succès !');
     }
 }

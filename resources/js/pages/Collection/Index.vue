@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import CollectionFilters from '@/components/Collection/CollectionFilters.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 import CollectionHeader from '@/components/Collection/CollectionHeader.vue';
+import CollectionFilters from '@/components/Collection/CollectionFilters.vue';
+import SerieItem from '@/components/Collection/SerieItem.vue';
 import EmptyState from '@/components/Collection/EmptyState.vue';
 import PurchaseDialog from '@/components/Collection/PurchaseDialog.vue';
-import SerieItem from '@/components/Collection/SerieItem.vue';
 import CreateTradeDialog from '@/components/Trade/CreateTradeDialog.vue';
-import { useCollection, type Card } from '@/composables/useCollection';
-import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { computed, ref, toRef, watch } from 'vue';
+import { useCollection, type Card } from '@/composables/useCollection';
 
 const props = defineProps<{
     allCards: Card[];
@@ -26,7 +26,8 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-// Utiliser le composable
+const allCardsRef = toRef(props, 'allCards');
+
 const {
     filter,
     expandedSeries,
@@ -37,13 +38,51 @@ const {
     toggleSet,
     expandAll,
     collapseAll,
-} = useCollection(props.allCards);
+} = useCollection(allCardsRef);
 
 // États des dialogs
 const showTradeDialog = ref(false);
 const showPurchaseDialog = ref(false);
 const selectedCard = ref<Card | null>(null);
 const purchasing = ref(false);
+
+// ✅ NOUVEAU: Sauvegarder l'état dans sessionStorage
+const STORAGE_KEY = 'collection_state';
+
+// ✅ Charger l'état sauvegardé au montage
+const loadState = () => {
+    try {
+        const savedState = sessionStorage.getItem(STORAGE_KEY);
+        if (savedState) {
+            const state = JSON.parse(savedState);
+            filter.value = state.filter || 'all';
+            expandedSeries.value = new Set(state.expandedSeries || []);
+            expandedSets.value = new Set(state.expandedSets || []);
+        }
+    } catch (error) {
+        console.error('Erreur lors du chargement de l\'état:', error);
+    }
+};
+
+// ✅ Sauvegarder l'état à chaque changement
+const saveState = () => {
+    try {
+        const state = {
+            filter: filter.value,
+            expandedSeries: Array.from(expandedSeries.value),
+            expandedSets: Array.from(expandedSets.value),
+        };
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+        console.error('Erreur lors de la sauvegarde de l\'état:', error);
+    }
+};
+
+// ✅ Charger l'état au démarrage
+loadState();
+
+// ✅ Sauvegarder à chaque changement
+watch([filter, expandedSeries, expandedSets], saveState, { deep: true });
 
 // Gestionnaires d'événements
 const handleTrade = (cardId: number) => {
@@ -67,13 +106,19 @@ const confirmPurchase = () => {
 
     purchasing.value = true;
 
+    // ✅ Sauvegarder l'état avant l'achat
+    saveState();
+
     router.post(
         `/shop/purchase/${selectedCard.value.id}`,
         {},
         {
+            preserveScroll: true, // ✅ Garde la position de scroll
+            preserveState: false,
             onSuccess: () => {
                 showPurchaseDialog.value = false;
                 selectedCard.value = null;
+                // L'état sera rechargé automatiquement depuis sessionStorage
             },
             onFinish: () => {
                 purchasing.value = false;
@@ -87,9 +132,7 @@ const confirmPurchase = () => {
     <Head title="Ma Collection" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div
-            class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4"
-        >
+        <div class="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
             <CollectionHeader
                 :owned-count="ownedCount"
                 :total-cards="allCards.length"

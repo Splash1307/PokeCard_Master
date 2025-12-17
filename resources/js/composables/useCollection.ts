@@ -1,5 +1,5 @@
 // composables/useCollection.ts
-import { computed, ref } from 'vue';
+import { computed, ref, type Ref } from 'vue';
 
 export type Card = {
     id: number;
@@ -30,17 +30,17 @@ export type Card = {
     };
 };
 
-export function useCollection(allCards: Card[]) {
+export function useCollection(allCards: Ref<Card[]>) {
     const filter = ref<'all' | 'owned' | 'not_owned'>('all');
     const expandedSeries = ref<Set<number>>(new Set());
     const expandedSets = ref<Set<number>>(new Set());
 
     const ownedCount = computed(() => {
-        return allCards.filter((card) => card.owned).length;
+        return allCards.value.filter((card) => card.owned).length;
     });
 
     const organizedCards = computed(() => {
-        const filteredCards = allCards.filter((card) => {
+        const filteredCards = allCards.value.filter((card) => {
             if (filter.value === 'owned') return card.owned;
             if (filter.value === 'not_owned') return !card.owned;
             return true;
