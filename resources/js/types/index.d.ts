@@ -30,7 +30,9 @@ export interface User {
     id: number;
     name: string;
     email: string;
+    coin: number;
     avatar?: string;
+    role_id: number;
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;
