@@ -7,18 +7,18 @@ export type Card = {
     owned: boolean;
     quantity: number;
     localId?: number;
-    hp?: number;
-    attack?: number;
-    defense?: number;
     rarity?: {
+        id: number;
         name: string;
         price?: number;
     };
     primaryType?: {
+        id: number;
         name: string;
         logo?: string;
     };
     secondaryType?: {
+        id: number;
         name: string;
         logo?: string;
     };
@@ -26,13 +26,16 @@ export type Card = {
         id: number;
         name: string;
         abbreviation: string;
+        logo?: string;
         serie?: {
             id: number;
             name: string;
             abbreviation: string;
+            logo?: string;
         };
     };
 };
+
 
 export function useCollection(allCards: Ref<Card[]>) {
     const filter = ref<'all' | 'owned' | 'not_owned'>('all');

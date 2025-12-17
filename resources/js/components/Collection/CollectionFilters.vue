@@ -1,16 +1,19 @@
 <script setup lang="ts">
+import FilterButton from '@/components/FilterCard/FilterButton.vue';
 import { Button } from '@/components/ui/button';
 
 defineProps<{
     filter: 'all' | 'owned' | 'not_owned';
     allCardsCount: number;
     ownedCount: number;
+    activeFiltersCount?: number;
 }>();
 
 const emit = defineEmits<{
     'update:filter': [value: 'all' | 'owned' | 'not_owned'];
     expandAll: [];
     collapseAll: [];
+    openAdvancedFilters: [];
 }>();
 </script>
 
@@ -37,6 +40,12 @@ const emit = defineEmits<{
         >
             Non possédées ({{ allCardsCount - ownedCount }})
         </Button>
+
+        <!-- Bouton de filtres avancés -->
+        <FilterButton
+            :active-filters-count="activeFiltersCount"
+            @click="emit('openAdvancedFilters')"
+        />
 
         <div class="ml-auto flex gap-2">
             <Button @click="emit('expandAll')" variant="outline" size="sm">
