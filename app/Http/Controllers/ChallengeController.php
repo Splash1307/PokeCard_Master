@@ -24,7 +24,7 @@ class ChallengeController extends Controller
         // Récupérer tous les challenges actifs
         $challenges = Challenge::with([
             'requirements.set',
-            'requirements.requirementCards.card'
+            'requirements.requirementCards.card.set'
         ])
             ->where('status', 'Actif')
             ->get()
@@ -79,6 +79,7 @@ class ChallengeController extends Controller
                                 'card_id' => $reqCard->card_id,
                                 'card_name' => $reqCard->card->name,
                                 'card_image' => $reqCard->card->image,
+                                'card_set_name' => $reqCard->card->set->name ?? null,
                                 'required_qty' => $reqCard->required_qty,
                                 'owned_qty' => $ownedQty,
                                 'donated_qty' => $donatedQty,

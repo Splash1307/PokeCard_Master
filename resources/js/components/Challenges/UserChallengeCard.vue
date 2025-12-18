@@ -18,6 +18,7 @@ interface Requirement {
         card_id: number;
         card_name: string;
         card_image: string;
+        card_set_name: string | null;
         required_qty: number;
         owned_qty: number;
         donated_qty: number;
@@ -45,6 +46,7 @@ const popupCard = ref<null | {
     name: string;
     image: string;
 }> (null);
+const showCardList = ref<Requirement | null>(null);
 
 const showImage = (card: any) => {
     popupCard.value = {
@@ -54,6 +56,14 @@ const showImage = (card: any) => {
 };
 
 const closeImage = () => popupCard.value = null;
+
+const openCardList = (requirement: Requirement) => {
+    showCardList.value = requirement;
+};
+
+const closeCardList = () => {
+    showCardList.value = null;
+};
 
 const statusVariant = computed(() => {
     if (props.challenge.status === 'Récompense récupérée') return 'outline';
@@ -138,7 +148,7 @@ const getCardState = (card: any) => {
 </script>
 
 <template>
-    <Card class="flex flex-col">
+    <Card class="flex flex-col transition-all" :class="challenge.claimed_at ? 'opacity-60 saturate-50' : ''">
 
         <CardHeader>
             <div class="flex items-start justify-between gap-2">
@@ -175,61 +185,15 @@ const getCardState = (card: any) => {
 
                     <!-- TYPE CARD_LIST -->
                     <template v-if="req.type === 'CARD_LIST' && req.cards.length">
-                        <div class="grid grid-cols-1 gap-3 pl-6">
-                            <template v-for="card in req.cards" :key="card.card_id">
-                                <div
-                                    class="flex items-center gap-3 p-3 border rounded transition-all"
-                                    :class="{
-                                        'border-green-500/50': getCardState(card) === 'completed',
-                                        'border-blue-500/30': getCardState(card) === 'owned',
-                                        'border-border opacity-60': getCardState(card) === 'not_owned',
-                                    }"
-                                >
-                                    <img
-                                        :src="card.card_image"
-                                        class="h-12 w-8 object-cover rounded cursor-pointer hover:scale-105 transition-transform"
-                                        @click="showImage(card)"
-                                    />
-
-                                    <div class="flex-1 flex flex-col gap-1">
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-sm font-medium">{{ card.card_name }}</span>
-                                            <Badge
-                                                v-if="getCardState(card) === 'completed'"
-                                                variant="outline"
-                                                class="border-green-500 text-green-600"
-                                            >
-                                                <CheckCircle class="w-3 h-3 mr-1" />
-                                                Validée
-                                            </Badge>
-                                            <Badge
-                                                v-else-if="getCardState(card) === 'not_owned'"
-                                                variant="outline"
-                                            >
-                                                Non possédée
-                                            </Badge>
-                                        </div>
-
-                                        <div v-if="getCardState(card) !== 'completed'" class="flex items-center gap-3 text-xs text-muted-foreground">
-                                            <span>Requis: {{ card.required_qty }}</span>
-                                            <span>Possédée: {{ card.owned_qty }}</span>
-                                            <span class="font-semibold" :class="card.donated_qty > 0 ? 'text-green-600' : ''">
-                                                Donnée: {{ card.donated_qty }}
-                                            </span>
-                                        </div>
-
-                                        <Button
-                                            v-if="canDonateCard(card)"
-                                            @click="donateCard(card.card_id)"
-                                            :disabled="donatingCard === card.card_id"
-                                            size="sm"
-                                            class="mt-1 w-full"
-                                        >
-                                            {{ donatingCard === card.card_id ? 'Don en cours...' : 'Donner cette carte' }}
-                                        </Button>
-                                    </div>
-                                </div>
-                            </template>
+                        <div class="pl-6">
+                            <Button
+                                @click="openCardList(req)"
+                                variant="outline"
+                                size="sm"
+                                class="w-full"
+                            >
+                                Voir les {{ req.target_count }} carte(s) requise(s)
+                            </Button>
                         </div>
                     </template>
 
@@ -267,18 +231,141 @@ const getCardState = (card: any) => {
 
         </CardContent>
 
+        <CardFooter class="flex flex-col gap-3 border-t pt-4">
+            <!-- Dates -->
+            <div class="flex justify-between text-xs text-muted-foreground w-full">
+                <div class="flex items-center gap-1">
+                    <Clock class="w-3 h-3" />
+                    <span>Début: {{ formatDate(challenge.start_date) }}</span>
+                </div>
+                <span>Fin: {{ formatDate(challenge.end_date) }}</span>
+            </div>
+
+            <!-- Récompense et bouton claim -->
+            <div class="flex items-center justify-between w-full gap-3">
+                <div class="flex items-center gap-2">
+                    <Trophy class="w-4 h-4 text-yellow-500" />
+                    <span class="font-semibold text-yellow-600">{{ challenge.reward }} pièces</span>
+                </div>
+
+                <Button
+                    v-if="challenge.can_claim"
+                    @click="claimReward"
+                    :disabled="isClaiming"
+                    variant="default"
+                    size="sm"
+                >
+                    {{ isClaiming ? 'Récupération...' : 'Récupérer la récompense' }}
+                </Button>
+            </div>
+        </CardFooter>
+
     </Card>
 
     <!-- POPUP IMAGE -->
     <div
         v-if="popupCard"
-        class="fixed inset-0 bg-black/80 flex justify-center items-center z-50"
+        class="fixed inset-0 bg-black/80 flex justify-center items-center z-[60]"
         @click="closeImage"
     >
         <img
             :src="popupCard.image"
             class="max-h-[90vh] max-w-[70vw] rounded shadow-2xl"
         />
+    </div>
+
+    <!-- POPUP LISTE DES CARTES -->
+    <div
+        v-if="showCardList"
+        class="fixed inset-0 bg-black/80 flex justify-center items-center z-50 p-4"
+        @click.self="closeCardList"
+    >
+        <div class="bg-background rounded-lg shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <!-- Header -->
+            <div class="flex items-center justify-between p-6 border-b">
+                <div>
+                    <h3 class="text-lg font-semibold">{{ getRequirementTypeLabel(showCardList.type) }}</h3>
+                    <p class="text-sm text-muted-foreground mt-1">
+                        Progression : {{ showCardList.progress_count }} / {{ showCardList.target_count }}
+                    </p>
+                </div>
+                <Button
+                    @click="closeCardList"
+                    variant="ghost"
+                    size="sm"
+                    class="h-8 w-8 p-0"
+                >
+                    ✕
+                </Button>
+            </div>
+
+            <!-- Content avec scroll -->
+            <div class="flex-1 overflow-y-auto p-6">
+                <div class="grid grid-cols-1 gap-3">
+                    <template v-for="card in showCardList.cards" :key="card.card_id">
+                        <div
+                            class="flex items-center gap-3 p-3 border rounded transition-all"
+                            :class="{
+                                'border-green-500/50 bg-green-500/5': getCardState(card) === 'completed',
+                                'border-blue-500/30 bg-blue-500/5': getCardState(card) === 'owned',
+                                'border-border opacity-60': getCardState(card) === 'not_owned',
+                            }"
+                        >
+                            <img
+                                :src="card.card_image"
+                                class="h-16 w-12 object-cover rounded cursor-pointer hover:scale-105 transition-transform"
+                                @click="showImage(card)"
+                            />
+
+                            <div class="flex-1 flex flex-col gap-2">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex flex-col gap-0.5">
+                                        <span class="text-sm font-medium">{{ card.card_name }}</span>
+                                        <span v-if="card.card_set_name" class="text-xs text-muted-foreground">{{ card.card_set_name }}</span>
+                                    </div>
+                                    <Badge
+                                        v-if="getCardState(card) === 'completed'"
+                                        variant="outline"
+                                        class="border-green-500 text-green-600"
+                                    >
+                                        <CheckCircle class="w-3 h-3 mr-1" />
+                                        Validée
+                                    </Badge>
+                                    <Badge
+                                        v-else-if="getCardState(card) === 'not_owned'"
+                                        variant="outline"
+                                    >
+                                        Non possédée
+                                    </Badge>
+                                </div>
+
+                                <div v-if="getCardState(card) !== 'completed'" class="flex items-center gap-3 text-xs text-muted-foreground">
+                                    <span>Requis: {{ card.required_qty }}</span>
+                                    <span>Possédée: {{ card.owned_qty }}</span>
+                                </div>
+
+                                <Button
+                                    v-if="canDonateCard(card)"
+                                    @click="donateCard(card.card_id)"
+                                    :disabled="donatingCard === card.card_id"
+                                    size="sm"
+                                    class="mt-1 w-full"
+                                >
+                                    {{ donatingCard === card.card_id ? 'Don en cours...' : 'Donner cette carte' }}
+                                </Button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 border-t flex justify-end">
+                <Button @click="closeCardList" variant="outline">
+                    Fermer
+                </Button>
+            </div>
+        </div>
     </div>
 
 </template>

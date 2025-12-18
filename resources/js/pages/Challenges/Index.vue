@@ -3,6 +3,8 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import UserChallengeCard from '@/components/Challenges/UserChallengeCard.vue';
 import { Head } from '@inertiajs/vue3';
 import { type BreadcrumbItem } from '@/types';
+import { ref, computed } from 'vue';
+import { Button } from '@/components/ui/button';
 
 interface Requirement {
     id: number;
@@ -16,6 +18,7 @@ interface Requirement {
         card_id: number;
         card_name: string;
         card_image: string;
+        card_set_name: string | null;
         required_qty: number;
     }>;
 }
@@ -34,7 +37,7 @@ interface Challenge {
     requirements: Requirement[];
 }
 
-defineProps<{
+const props = defineProps<{
     challenges: Challenge[];
 }>();
 
@@ -44,6 +47,24 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/challenges',
     },
 ];
+
+const filter = ref<'all' | 'in_progress' | 'completed'>('all');
+
+const filteredChallenges = computed(() => {
+    if (filter.value === 'all') {
+        return props.challenges;
+    } else if (filter.value === 'in_progress') {
+        return props.challenges.filter(c => c.status === 'En cours');
+    } else {
+        return props.challenges.filter(c => c.status === 'Complété' || c.status === 'Récompense récupérée');
+    }
+});
+
+const counters = computed(() => ({
+    all: props.challenges.length,
+    in_progress: props.challenges.filter(c => c.status === 'En cours').length,
+    completed: props.challenges.filter(c => c.status === 'Complété' || c.status === 'Récompense récupérée').length,
+}));
 </script>
 
 <template>
@@ -59,10 +80,35 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </p>
             </div>
 
+            <!-- Filtres -->
+            <div class="flex gap-2">
+                <Button
+                    @click="filter = 'all'"
+                    :variant="filter === 'all' ? 'default' : 'outline'"
+                    size="sm"
+                >
+                    Tous ({{ counters.all }})
+                </Button>
+                <Button
+                    @click="filter = 'in_progress'"
+                    :variant="filter === 'in_progress' ? 'default' : 'outline'"
+                    size="sm"
+                >
+                    En cours ({{ counters.in_progress }})
+                </Button>
+                <Button
+                    @click="filter = 'completed'"
+                    :variant="filter === 'completed' ? 'default' : 'outline'"
+                    size="sm"
+                >
+                    Terminés ({{ counters.completed }})
+                </Button>
+            </div>
+
             <!-- Liste des challenges -->
-            <div v-if="challenges.length > 0" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div v-if="filteredChallenges.length > 0" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <UserChallengeCard
-                    v-for="challenge in challenges"
+                    v-for="challenge in filteredChallenges"
                     :key="challenge.id"
                     :challenge="challenge"
                 />

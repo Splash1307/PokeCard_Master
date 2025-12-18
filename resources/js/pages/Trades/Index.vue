@@ -110,6 +110,12 @@ watch(search, () => {
                         Mes échanges
                     </Button>
                 </Link>
+
+                <Link href="/collection">
+                    <Button variant="outline">
+                        Faire un échange
+                    </Button>
+                </Link>
             </div>
 
             <!-- Barre de recherche -->
