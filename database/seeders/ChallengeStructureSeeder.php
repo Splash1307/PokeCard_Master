@@ -10,8 +10,6 @@ use App\Models\Challenge;
 use App\Models\ChallengeRequirement;
 use App\Models\RequirementCard;
 use App\Models\UserChallenge;
-use App\Models\UserRequirementProgress;
-use App\Models\ChallengeDonation;
 use Illuminate\Support\Collection;
 
 class ChallengeStructureSeeder extends Seeder
@@ -72,66 +70,13 @@ class ChallengeStructureSeeder extends Seeder
             $participants = $users;
 
             foreach ($participants as $user) {
-                $userChallenge = UserChallenge::create([
+                UserChallenge::create([
                     'user_id'      => $user->id,
                     'challenge_id' => $challenge->id,
                     'status'       => 'En cours',
                     'completed_at' => null,
                     'claimed_at'   => null,
                 ]);
-
-                // ---------- 4. PROGRESSION PAR REQUIREMENT ----------
-
-                foreach ($challenge->requirements as $req) {
-                    $progress = rand(0, $req->target_count);
-
-                    UserRequirementProgress::create([
-                        'user_id'        => $user->id,
-                        'requirement_id' => $req->id,
-                        'progress_count' => $progress,
-                        'updated_at'     => now(),
-                        'completed_at'   => $progress >= $req->target_count ? now() : null,
-                    ]);
-
-                    // ---------- 5. DONS COHÉRENTS POUR LES CARD_LIST ----------
-                    if ($req->type === 'CARD_LIST' && $progress > 0) {
-                        // Liste des id des cartes cibles de ce requirement
-                        $targetCards = $req->requirementCards->pluck('card_id')->toArray();
-
-                        // On tire "progress" cartes distinctes parmi ces cibles
-                        $donatedCards = collect($targetCards)
-                            ->shuffle()              // on mélange l'ordre
-                            ->take($progress);       // on en garde 'progress'
-
-                        foreach ($donatedCards as $cardId) {
-                            ChallengeDonation::create([
-                                'user_id'      => $user->id,
-                                'challenge_id' => $challenge->id,
-                                'card_id'      => $cardId,
-                                'qty'          => 1,
-                                // Date de don pseudo-aléatoire : aujourd'hui ou jusqu'à 5 jours en arrière
-                                'donated_at'   => now()->subDays(rand(0, 5)),
-                            ]);
-                        }
-                    }
-                }
-
-                // ---------- 6. MARQUER LE DÉFI COMME TERMINÉ SI TOUS LES REQUIREMENTS SONT COMPLETS ----------
-
-                $allCompleted = $challenge->requirements->every(function ($req) use ($user) {
-                    $urp = UserRequirementProgress::where('user_id', $user->id)
-                        ->where('requirement_id', $req->id)
-                        ->first();
-
-                    return $urp && $urp->completed_at !== null;
-                });
-
-                if ($allCompleted) {
-                    $userChallenge->update([
-                        'status'       => 'Completé',
-                        'completed_at' => now(),
-                    ]);
-                }
             }
         }
     }
