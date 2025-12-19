@@ -18,8 +18,12 @@ class TradeController extends Controller
         $user = auth()->user();
         $search = $request->input('search', '');
 
-        // Récupérer toutes les offres d'échange en attente
-        // SAUF celles créées par l'utilisateur connecté
+        // Récupérer les IDs des cartes possédées par l'utilisateur
+        $userCardIds = Collection::where('user_id', $user->id)
+            ->where('nbCard', '>', 0)
+            ->pluck('card_id')
+            ->toArray();
+
         $query = Trade::with([
             'creator',
             'offeredCard.rarity',
@@ -34,7 +38,6 @@ class TradeController extends Controller
             ->where('status', 'pending')
             ->where('creator_id', '!=', $user->id);
 
-        // Filtrer par nom de carte si une recherche est fournie
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->whereHas('offeredCard', function ($cardQuery) use ($search) {
@@ -47,20 +50,22 @@ class TradeController extends Controller
 
         $trades = $query->latest()
             ->get()
-            ->map(function ($trade) use ($user) {
-                // Vérifier si l'utilisateur possède la carte demandée
+            ->map(function ($trade) use ($user, $userCardIds) {
                 $userHasCard = Collection::where('user_id', $user->id)
                     ->where('card_id', $trade->requested_card_id)
                     ->where('nbCard', '>', 0)
                     ->exists();
 
-                // Vérifier si le créateur possède toujours la carte offerte
                 $creatorHasCard = Collection::where('user_id', $trade->creator_id)
                     ->where('card_id', $trade->offered_card_id)
                     ->where('nbCard', '>', 0)
                     ->exists();
 
                 $trade->can_accept = $userHasCard && $creatorHasCard;
+
+                // Ajouter si l'utilisateur possède la carte offerte
+                $trade->user_has_offered_card = in_array($trade->offered_card_id, $userCardIds);
+
                 return $trade;
             });
 
@@ -71,6 +76,7 @@ class TradeController extends Controller
             ],
         ]);
     }
+
 
     /**
      * Afficher les échanges de l'utilisateur connecté
