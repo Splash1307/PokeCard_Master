@@ -17,6 +17,7 @@ class Challenge extends Model
         'start_date',
         'end_date',
         'status',
+        'was_active',
         'reward',
     ];
 
@@ -25,6 +26,7 @@ class Challenge extends Model
         return [
             'start_date' => 'date',
             'end_date'   => 'date',
+            'was_active' => 'boolean',
         ];
     }
 

@@ -54,14 +54,17 @@ class ChallengeController extends Controller
                         ]
                     );
 
+                    // Calculer la progression en temps réel
+                    $currentProgress = self::calculateProgress($user, $req);
+
                     return [
                         'id' => $req->id,
                         'type' => $req->type,
                         'set_id' => $req->set_id,
                         'set_name' => $req->set->name ?? null,
                         'target_count' => $req->target_count,
-                        'progress_count' => $progress->progress_count,
-                        'completed' => $progress->completed_at !== null,
+                        'progress_count' => $currentProgress,
+                        'completed' => $currentProgress >= $req->target_count,
                         'cards' => $req->requirementCards->map(function ($reqCard) use ($user, $challenge) {
                             // Récupérer la quantité possédée par l'utilisateur
                             $collection = Collection::where('user_id', $user->id)
@@ -90,6 +93,15 @@ class ChallengeController extends Controller
 
                 // Vérifier si tous les requirements sont complétés
                 $allCompleted = $requirements->every(fn($req) => $req['completed']);
+
+                // Mettre à jour le statut du challenge si tous les requirements sont complétés
+                if ($allCompleted && $userChallenge->status === 'En cours') {
+                    $userChallenge->update([
+                        'status' => 'Complété',
+                        'completed_at' => now(),
+                    ]);
+                    $userChallenge->refresh(); // Recharger les données
+                }
 
                 return [
                     'id' => $challenge->id,
@@ -261,6 +273,9 @@ class ChallengeController extends Controller
                 );
             }
         }
+
+        // Calculer immédiatement la progression pour ce nouvel utilisateur
+        self::checkAndUpdateProgress($userId);
     }
 
     /**
@@ -303,6 +318,9 @@ class ChallengeController extends Controller
                     ]
                 );
             }
+
+            // Calculer immédiatement la progression pour cet utilisateur
+            self::checkAndUpdateProgress($user->id);
         }
     }
 
@@ -397,7 +415,7 @@ class ChallengeController extends Controller
 
                     $totalDonated += min($donated, $reqCard->required_qty);
                 }
-                return $totalDonated;
+                return min($totalDonated, $requirement->target_count);
 
             case 'OPEN_PACKS':
                 // Compter les boosters ouverts de ce set
@@ -405,7 +423,7 @@ class ChallengeController extends Controller
                     ->where('set_id', $requirement->set_id)
                     ->count();
 
-                return $openingsCount;
+                return min($openingsCount, $requirement->target_count);
 
             case 'OWN_CARDS':
                 // Compter combien de cartes du set l'utilisateur possède
@@ -415,7 +433,7 @@ class ChallengeController extends Controller
                     })
                     ->sum('nbCard');
 
-                return $cardsCount;
+                return min($cardsCount, $requirement->target_count);
 
             default:
                 return 0;

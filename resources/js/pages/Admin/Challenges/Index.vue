@@ -14,6 +14,7 @@ interface Challenge {
     start_date: string | null;
     end_date: string | null;
     status: string;
+    was_active: boolean;
     reward: number;
     requirements_count: number;
     participants_count: number;

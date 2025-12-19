@@ -129,6 +129,7 @@ const donateCard = (cardId: number) => {
         },
         {
             preserveScroll: true,
+            preserveState: false,
             onFinish: () => {
                 donatingCard.value = null;
             },
@@ -179,7 +180,7 @@ const getCardState = (card: any) => {
                     <div class="flex justify-between text-sm font-medium">
                         <span>{{ getRequirementTypeLabel(req.type) }}</span>
                         <span class="text-muted-foreground">
-                            {{ req.progress_count }} / {{ req.target_count }}
+                            {{ Math.min(req.progress_count, req.target_count) }} / {{ req.target_count }}
                         </span>
                     </div>
 
@@ -286,7 +287,7 @@ const getCardState = (card: any) => {
                 <div>
                     <h3 class="text-lg font-semibold">{{ getRequirementTypeLabel(showCardList.type) }}</h3>
                     <p class="text-sm text-muted-foreground mt-1">
-                        Progression : {{ showCardList.progress_count }} / {{ showCardList.target_count }}
+                        Progression : {{ Math.min(showCardList.progress_count, showCardList.target_count) }} / {{ showCardList.target_count }}
                     </p>
                 </div>
                 <Button

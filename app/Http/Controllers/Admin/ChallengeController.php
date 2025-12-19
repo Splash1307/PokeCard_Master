@@ -34,6 +34,7 @@ class ChallengeController extends Controller
                     'start_date' => $challenge->start_date?->format('Y-m-d'),
                     'end_date' => $challenge->end_date?->format('Y-m-d'),
                     'status' => $challenge->status,
+                    'was_active' => $challenge->was_active,
                     'reward' => $challenge->reward,
                     'requirements' => $challenge->requirements->map(function ($req) {
                         return [
@@ -53,22 +54,37 @@ class ChallengeController extends Controller
     }
 
     /**
-     * Basculer le statut d'un challenge (Actif <-> Inactif)
+     * Basculer le statut d'un challenge
+     * En attente → Actif
+     * Actif → Inactif
+     * Inactif → Actif
      */
     public function toggleStatus(Challenge $challenge)
     {
-        $newStatus = $challenge->status === 'Actif' ? 'Inactif' : 'Actif';
+        // Déterminer le nouveau statut selon le statut actuel
+        $newStatus = match($challenge->status) {
+            'En attente' => 'Actif',
+            'Actif' => 'Inactif',
+            'Inactif' => 'Actif',
+            default => 'Actif',
+        };
 
-        $challenge->update([
-            'status' => $newStatus
-        ]);
+        // Mettre à jour le statut
+        $updateData = ['status' => $newStatus];
+
+        // Si le challenge passe à "Actif" pour la première fois, marquer was_active
+        if ($newStatus === 'Actif' && !$challenge->was_active) {
+            $updateData['was_active'] = true;
+        }
+
+        $challenge->update($updateData);
 
         // Si le challenge est activé, l'attribuer à tous les utilisateurs
         if ($newStatus === 'Actif') {
             UserChallengeController::assignChallengeToAllUsers($challenge->id);
         }
 
-        return back()->with('success', "Le challenge a été {$newStatus}.");
+        return back()->with('success', "Le challenge a été mis {$newStatus}.");
     }
 
     /**
@@ -111,7 +127,7 @@ class ChallengeController extends Controller
             'description' => 'required|string',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'status' => 'required|in:Actif,Inactif,Archivé',
+            'status' => 'required|in:En attente,Actif,Inactif,Archivé',
             'reward' => 'required|integer|min:0',
             'requirements' => 'required|array|min:1',
             'requirements.*.type' => 'required|in:CARD_LIST,OPEN_PACKS,OWN_CARDS',
@@ -129,6 +145,7 @@ class ChallengeController extends Controller
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'],
             'status' => $validated['status'],
+            'was_active' => $validated['status'] === 'Actif',
             'reward' => $validated['reward'],
         ]);
 
@@ -175,6 +192,12 @@ class ChallengeController extends Controller
      */
     public function edit(Challenge $challenge)
     {
+        // Vérifier si le challenge peut être modifié (uniquement s'il n'a jamais été actif)
+        if ($challenge->was_active) {
+            return redirect()->route('admin.challenges.index')
+                ->withErrors(['error' => 'Ce challenge ne peut plus être modifié car il a déjà été actif.']);
+        }
+
         // Charger le challenge avec ses relations
         $challenge->load(['requirements.requirementCards.card', 'requirements.set']);
 
@@ -238,13 +261,19 @@ class ChallengeController extends Controller
      */
     public function update(Request $request, Challenge $challenge)
     {
+        // Vérifier si le challenge peut être modifié (uniquement s'il n'a jamais été actif)
+        if ($challenge->was_active) {
+            return redirect()->route('admin.challenges.index')
+                ->withErrors(['error' => 'Ce challenge ne peut plus être modifié car il a déjà été actif.']);
+        }
+
         // Validation
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'status' => 'required|in:Actif,Inactif,Archivé',
+            'status' => 'required|in:En attente,Actif,Inactif,Archivé',
             'reward' => 'required|integer|min:0',
             'requirements' => 'required|array|min:1',
             'requirements.*.type' => 'required|in:CARD_LIST,OPEN_PACKS,OWN_CARDS',
@@ -260,14 +289,21 @@ class ChallengeController extends Controller
         $becomesActive = $validated['status'] === 'Actif';
 
         // Mettre à jour le challenge
-        $challenge->update([
+        $updateData = [
             'title' => $validated['title'],
             'description' => $validated['description'],
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'],
             'status' => $validated['status'],
             'reward' => $validated['reward'],
-        ]);
+        ];
+
+        // Si le challenge passe à "Actif", marquer was_active
+        if ($becomesActive) {
+            $updateData['was_active'] = true;
+        }
+
+        $challenge->update($updateData);
 
         // Supprimer les anciens requirements
         $challenge->requirements()->delete();
