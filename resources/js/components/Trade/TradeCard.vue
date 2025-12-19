@@ -3,17 +3,16 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { router } from '@inertiajs/vue3';
-import { computed } from 'vue';
 
 // Définir les propriétés que le composant reçoit
 const props = defineProps<{
     trade: {
         id: number;
         status: string;
-        can_accept?: boolean; // True si l'utilisateur peut accepter cet échange
-        is_valid?: boolean; // True si l'échange créé par l'utilisateur est encore valide
+        can_accept?: boolean;
+        is_valid?: boolean;
         creator: {
-            name: string;
+            pseudo: string;
         };
         offered_card: {
             id: number;
@@ -99,23 +98,7 @@ const getStatusText = (status: string) => {
     return status;
 };
 
-const imageUrl = computed(() => {
-    const serie = props.trade.requested_card.set?.serie?.abbreviation;
-    const set = props.trade.requested_card.set?.abbreviation;
-    const localId = props.trade.requested_card.localId;
-
-    console.log("serie:", serie);
-    console.log("set:", set);
-    console.log("localId:", localId);
-
-    if (!serie || !set || !localId) return '';
-
-    const url = `/assets/cards/${serie}/${set}/${localId}.png`;
-    console.log("imageUrl:", url);
-
-    return url;
-});
-
+const imageUrl = props.trade.requested_card.image;
 
 </script>
 
@@ -123,7 +106,7 @@ const imageUrl = computed(() => {
     <Card>
         <CardHeader>
             <div class="flex items-center justify-between">
-                <CardTitle class="text-lg">Échange de cartes</CardTitle>
+                <CardTitle class="text-lg">Échange {{props.trade.creator.pseudo}}</CardTitle>
                 <Badge :class="getStatusColor(trade.status)">
                     {{ getStatusText(trade.status) }}
                 </Badge>
@@ -217,7 +200,7 @@ const imageUrl = computed(() => {
         <!-- Actions pour mes offres créées : seulement Annuler -->
         <CardFooter v-if="showActions && trade.status === 'pending' && isMyOffer" class="flex flex-col gap-2">
             <p v-if="trade.is_valid === false" class="text-xs text-destructive text-center">
-                ⚠️ Vous ne possédez plus cette carte. Cet échange sera automatiquement annulé.
+                Vous ne possédez plus cette carte. Cet échange sera automatiquement annulé.
             </p>
             <Button @click="cancelTrade" class="w-full" variant="destructive">
                 Annuler mon offre
