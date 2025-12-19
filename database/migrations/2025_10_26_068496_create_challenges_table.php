@@ -12,7 +12,8 @@ return new class extends Migration {
             $table->string('description', 255)->nullable();
             $table->dateTime('start_date');
             $table->dateTime('end_date');
-            $table->enum('status',['Actif', 'Inactif', 'Archivé'])->default('Actif');
+            $table->enum('status',['En attente', 'Actif', 'Inactif', 'Archivé'])->default('En attente');
+            $table->boolean('was_active')->default(false);
             $table->integer('reward');
         });
     }

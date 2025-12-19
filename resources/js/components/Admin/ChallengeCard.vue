@@ -21,6 +21,7 @@ interface Challenge {
     start_date: string | null;
     end_date: string | null;
     status: string;
+    was_active: boolean;
     reward: number;
     requirements: Requirement[];
 }
@@ -41,6 +42,7 @@ const truncatedDescription = (text: string) => {
 const statusVariant = (status: string) => {
     if (status === 'Actif') return 'default';
     if (status === 'Inactif') return 'secondary';
+    if (status === 'En attente') return 'outline';
     return 'outline';
 };
 
@@ -208,7 +210,14 @@ const getRequirementIcon = (type: string) => {
         </CardContent>
 
         <CardFooter class="flex gap-2">
-            <Button variant="outline" size="sm" class="flex-1" @click="editChallenge">
+            <Button
+                variant="outline"
+                size="sm"
+                class="flex-1"
+                :disabled="challenge.was_active"
+                @click="editChallenge"
+                :title="challenge.was_active ? 'Ce challenge ne peut plus être modifié car il a déjà été actif' : 'Éditer le challenge'"
+            >
                 <Edit class="mr-2 h-4 w-4" />
                 Éditer
             </Button>
@@ -217,6 +226,7 @@ const getRequirementIcon = (type: string) => {
                 size="sm"
                 :disabled="isTogglingStatus"
                 @click="toggleStatus"
+                :title="challenge.status === 'En attente' ? 'Activer le challenge' : (challenge.status === 'Actif' ? 'Désactiver le challenge' : 'Réactiver le challenge')"
             >
                 <Power class="h-4 w-4" />
             </Button>
@@ -225,6 +235,7 @@ const getRequirementIcon = (type: string) => {
                 size="sm"
                 :disabled="isDeleting"
                 @click="deleteChallenge"
+                title="Supprimer le challenge"
             >
                 <Trash2 class="h-4 w-4" />
             </Button>
