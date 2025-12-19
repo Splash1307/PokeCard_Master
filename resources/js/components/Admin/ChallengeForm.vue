@@ -44,7 +44,6 @@ interface ChallengeData {
     description: string;
     start_date: string | null;
     end_date: string | null;
-    status: string;
     reward: number;
     requirements: Requirement[];
 }
@@ -66,7 +65,6 @@ const form = useForm<ChallengeData>({
     description: props.challenge?.description || '',
     start_date: props.challenge?.start_date || null,
     end_date: props.challenge?.end_date || null,
-    status: props.challenge?.status || 'Actif',
     reward: props.challenge?.reward || 0,
     requirements: props.challenge?.requirements || [],
 });
@@ -236,34 +234,18 @@ onMounted(() => {
                     </div>
                 </div>
 
-                <!-- Statut et Récompense -->
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <Label for="status">Statut *</Label>
-                        <select
-                            id="status"
-                            v-model="form.status"
-                            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            :class="{ 'border-red-500': form.errors.status }"
-                        >
-                            <option value="Actif">Actif</option>
-                            <option value="Inactif">Inactif</option>
-                            <option value="Archivé">Archivé</option>
-                        </select>
-                        <p v-if="form.errors.status" class="text-sm text-red-500 mt-1">{{ form.errors.status }}</p>
-                    </div>
-                    <div>
-                        <Label for="reward">Récompense (coins) *</Label>
-                        <Input
-                            id="reward"
-                            v-model.number="form.reward"
-                            type="number"
-                            min="0"
-                            required
-                            :class="{ 'border-red-500': form.errors.reward }"
-                        />
-                        <p v-if="form.errors.reward" class="text-sm text-red-500 mt-1">{{ form.errors.reward }}</p>
-                    </div>
+                <!-- Récompense -->
+                <div>
+                    <Label for="reward">Récompense (coins) *</Label>
+                    <Input
+                        id="reward"
+                        v-model.number="form.reward"
+                        type="number"
+                        min="0"
+                        required
+                        :class="{ 'border-red-500': form.errors.reward }"
+                    />
+                    <p v-if="form.errors.reward" class="text-sm text-red-500 mt-1">{{ form.errors.reward }}</p>
                 </div>
             </CardContent>
         </Card>

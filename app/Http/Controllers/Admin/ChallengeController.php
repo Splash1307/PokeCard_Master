@@ -127,7 +127,6 @@ class ChallengeController extends Controller
             'description' => 'required|string',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'status' => 'required|in:En attente,Actif,Inactif,Archivé',
             'reward' => 'required|integer|min:0',
             'requirements' => 'required|array|min:1',
             'requirements.*.type' => 'required|in:CARD_LIST,OPEN_PACKS,OWN_CARDS',
@@ -138,14 +137,14 @@ class ChallengeController extends Controller
             'requirements.*.cards.*.required_qty' => 'required_if:requirements.*.type,CARD_LIST|integer|min:1',
         ]);
 
-        // Créer le challenge
+        // Créer le challenge avec le statut "En attente" par défaut
         $challenge = Challenge::create([
             'title' => $validated['title'],
             'description' => $validated['description'],
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'],
-            'status' => $validated['status'],
-            'was_active' => $validated['status'] === 'Actif',
+            'status' => 'En attente',
+            'was_active' => false,
             'reward' => $validated['reward'],
         ]);
 
@@ -176,11 +175,6 @@ class ChallengeController extends Controller
                     ]);
                 }
             }
-        }
-
-        // Si le challenge est créé avec le statut "Actif", l'attribuer à tous les utilisateurs
-        if ($validated['status'] === 'Actif') {
-            UserChallengeController::assignChallengeToAllUsers($challenge->id);
         }
 
         return redirect()->route('admin.challenges.index')
@@ -273,7 +267,6 @@ class ChallengeController extends Controller
             'description' => 'required|string',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'status' => 'required|in:En attente,Actif,Inactif,Archivé',
             'reward' => 'required|integer|min:0',
             'requirements' => 'required|array|min:1',
             'requirements.*.type' => 'required|in:CARD_LIST,OPEN_PACKS,OWN_CARDS',
@@ -284,26 +277,14 @@ class ChallengeController extends Controller
             'requirements.*.cards.*.required_qty' => 'required_if:requirements.*.type,CARD_LIST|integer|min:1',
         ]);
 
-        // Vérifier si le statut devient "Actif"
-        $wasInactive = $challenge->status !== 'Actif';
-        $becomesActive = $validated['status'] === 'Actif';
-
-        // Mettre à jour le challenge
-        $updateData = [
+        // Mettre à jour le challenge (le statut reste "En attente", modifiable uniquement via toggleStatus)
+        $challenge->update([
             'title' => $validated['title'],
             'description' => $validated['description'],
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'],
-            'status' => $validated['status'],
             'reward' => $validated['reward'],
-        ];
-
-        // Si le challenge passe à "Actif", marquer was_active
-        if ($becomesActive) {
-            $updateData['was_active'] = true;
-        }
-
-        $challenge->update($updateData);
+        ]);
 
         // Supprimer les anciens requirements
         $challenge->requirements()->delete();
@@ -335,11 +316,6 @@ class ChallengeController extends Controller
                     ]);
                 }
             }
-        }
-
-        // Si le challenge passe à "Actif", l'attribuer à tous les utilisateurs
-        if ($wasInactive && $becomesActive) {
-            UserChallengeController::assignChallengeToAllUsers($challenge->id);
         }
 
         return redirect()->route('admin.challenges.index')
