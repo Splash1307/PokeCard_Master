@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Series;
 use App\Models\Trade;
 use App\Models\Collection;
+use App\Models\Type;
+use App\Models\Rarity;
+use App\Models\Set;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -16,7 +20,13 @@ class TradeController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
+
+        // Récupérer tous les filtres
         $search = $request->input('search', '');
+        $rarity = $request->input('rarity', '');
+        $type = $request->input('type', '');
+        $serie = $request->input('serie', '');
+        $set = $request->input('set', '');
 
         // Récupérer les IDs des cartes possédées par l'utilisateur
         $userCardIds = Collection::where('user_id', $user->id)
@@ -24,6 +34,7 @@ class TradeController extends Controller
             ->pluck('card_id')
             ->toArray();
 
+        // Récupérer toutes les offres d'échange en attente
         $query = Trade::with([
             'creator',
             'offeredCard.rarity',
@@ -38,19 +49,53 @@ class TradeController extends Controller
             ->where('status', 'pending')
             ->where('creator_id', '!=', $user->id);
 
+        // Filtrer par recherche (nom de carte)
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->whereHas('offeredCard', function ($cardQuery) use ($search) {
-                    $cardQuery->where('name', 'like', '%' . $search . '%');
-                })->orWhereHas('requestedCard', function ($cardQuery) use ($search) {
-                    $cardQuery->where('name', 'like', '%' . $search . '%');
+                    $cardQuery->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('localId', 'like', '%' . $search . '%');
                 });
             });
         }
 
+        // Filtrer par série
+        if (!empty($serie)) {
+            $serieIds = explode(',', $serie);
+            $query->whereHas('offeredCard.set.serie', function ($q) use ($serieIds) {
+                $q->whereIn('id', $serieIds);
+            });
+        }
+
+        // Filtrer par set
+        if (!empty($set)) {
+            $setIds = explode(',', $set);
+            $query->whereHas('offeredCard.set', function ($q) use ($setIds) {
+                $q->whereIn('id', $setIds);
+            });
+        }
+
+        // Filtrer par type
+        if (!empty($type)) {
+            $typeNames = explode(',', $type);
+            $query->whereHas('offeredCard.primaryType', function ($q) use ($typeNames) {
+                $q->whereIn('name', $typeNames);
+            });
+        }
+
+        // Filtrer par rareté
+        if (!empty($rarity)) {
+            $rarityNames = explode(',', $rarity);
+            $query->whereHas('offeredCard.rarity', function ($q) use ($rarityNames) {
+                $q->whereIn('name', $rarityNames);
+            });
+        }
+
+        // Paginer les résultats (21 par page)
         $trades = $query->latest()
-            ->get()
-            ->map(function ($trade) use ($user, $userCardIds) {
+            ->paginate(21)
+            ->withQueryString()
+            ->through(function ($trade) use ($user, $userCardIds) {
                 $userHasCard = Collection::where('user_id', $user->id)
                     ->where('card_id', $trade->requested_card_id)
                     ->where('nbCard', '>', 0)
@@ -62,21 +107,81 @@ class TradeController extends Controller
                     ->exists();
 
                 $trade->can_accept = $userHasCard && $creatorHasCard;
-
-                // Ajouter si l'utilisateur possède la carte offerte
                 $trade->user_has_offered_card = in_array($trade->offered_card_id, $userCardIds);
 
                 return $trade;
             });
 
+        // Générer la config des filtres basée sur TOUTES les cartes disponibles dans les trades
+        $allOfferedCardIds = Trade::where('status', 'pending')
+            ->where('creator_id', '!=', $user->id)
+            ->pluck('offered_card_id')
+            ->unique()
+            ->toArray();
+
+        $filterConfig = [
+            'series' => Series::whereHas('sets.cards', function ($q) use ($allOfferedCardIds) {
+                $q->whereIn('cards.id', $allOfferedCardIds);
+            })
+                ->get()
+                ->map(function ($s) use ($allOfferedCardIds) {
+                    $count = DB::table('cards')
+                        ->join('sets', 'cards.set_id', '=', 'sets.id')
+                        ->where('sets.serie_id', $s->id)
+                        ->whereIn('cards.id', $allOfferedCardIds)
+                        ->count();
+                    return ['label' => $s->name, 'value' => $s->id, 'count' => $count];
+                })
+                ->filter(fn($s) => $s['count'] > 0)
+                ->values()
+                ->toArray(),
+
+            'sets' => Set::whereHas('cards', function ($q) use ($allOfferedCardIds) {
+                $q->whereIn('id', $allOfferedCardIds);
+            })
+                ->withCount(['cards as count' => function ($q) use ($allOfferedCardIds) {
+                    $q->whereIn('id', $allOfferedCardIds);
+                }])
+                ->get()
+                ->map(fn($s) => ['label' => $s->name, 'value' => $s->id, 'count' => $s->count])
+                ->filter(fn($s) => $s['count'] > 0)
+                ->toArray(),
+
+            'types' => Type::whereHas('primaryCards', function ($q) use ($allOfferedCardIds) {
+                $q->whereIn('id', $allOfferedCardIds);
+            })
+                ->withCount(['primaryCards as count' => function ($q) use ($allOfferedCardIds) {
+                    $q->whereIn('id', $allOfferedCardIds);
+                }])
+                ->get()
+                ->map(fn($t) => ['label' => $t->name, 'value' => $t->name, 'count' => $t->count, 'logo' => $t->logo])
+                ->filter(fn($t) => $t['count'] > 0)
+                ->toArray(),
+
+            'rarities' => Rarity::whereHas('cards', function ($q) use ($allOfferedCardIds) {
+                $q->whereIn('id', $allOfferedCardIds);
+            })
+                ->withCount(['cards as count' => function ($q) use ($allOfferedCardIds) {
+                    $q->whereIn('id', $allOfferedCardIds);
+                }])
+                ->get()
+                ->map(fn($r) => ['label' => $r->name, 'value' => $r->name, 'count' => $r->count])
+                ->filter(fn($r) => $r['count'] > 0)
+                ->toArray(),
+        ];
+
         return Inertia::render('Trades/Index', [
             'trades' => $trades,
             'filters' => [
                 'search' => $search,
+                'rarity' => $rarity,
+                'type' => $type,
+                'serie' => $serie,
+                'set' => $set,
             ],
+            'filterConfig' => $filterConfig,
         ]);
     }
-
 
     /**
      * Afficher les échanges de l'utilisateur connecté
@@ -85,7 +190,6 @@ class TradeController extends Controller
     {
         $user = auth()->user();
 
-        // Récupérer les offres créées par l'utilisateur
         $createdTrades = Trade::with([
             'creator',
             'offeredCard.rarity',
@@ -101,7 +205,6 @@ class TradeController extends Controller
             ->latest()
             ->get()
             ->map(function ($trade) use ($user) {
-                // Vérifier si le créateur possède toujours la carte offerte
                 $creatorHasCard = Collection::where('user_id', $user->id)
                     ->where('card_id', $trade->offered_card_id)
                     ->where('nbCard', '>', 0)
@@ -111,7 +214,6 @@ class TradeController extends Controller
                 return $trade;
             });
 
-        // Récupérer les offres acceptées par l'utilisateur
         $respondedTrades = Trade::with([
             'creator',
             'offeredCard.rarity',
@@ -129,20 +231,15 @@ class TradeController extends Controller
         ]);
     }
 
-    /**
-     * Créer une nouvelle offre d'échange
-     */
     public function store(Request $request)
     {
         $user = auth()->user();
 
-        // Vérifier que les données sont correctes
         $validated = $request->validate([
             'offered_card_id' => 'required|exists:cards,id',
             'requested_card_id' => 'required|exists:cards,id|different:offered_card_id',
         ]);
 
-        // Vérifier que l'utilisateur possède la carte qu'il veut offrir
         $hasCard = Collection::where('user_id', $user->id)
             ->where('card_id', $validated['offered_card_id'])
             ->where('nbCard', '>', 0)
@@ -154,7 +251,6 @@ class TradeController extends Controller
             ]);
         }
 
-        // Créer l'offre d'échange
         Trade::create([
             'creator_id' => $user->id,
             'offered_card_id' => $validated['offered_card_id'],
@@ -165,27 +261,20 @@ class TradeController extends Controller
         return redirect()->route('trades.my')->with('success', 'Offre d\'échange créée avec succès !');
     }
 
-    /**
-     * Accepter une offre d'échange
-     */
     public function accept(Trade $trade)
     {
         $user = auth()->user();
 
-        // Vérifier que l'offre est toujours en attente
         if (!$trade->isPending()) {
             return back()->withErrors(['error' => 'Cette offre n\'est plus disponible.']);
         }
 
-        // Vérifier que l'utilisateur n'essaie pas d'accepter sa propre offre
         if ($trade->creator_id === $user->id) {
             return back()->withErrors(['error' => 'Vous ne pouvez pas accepter votre propre offre.']);
         }
 
-        // Utiliser une transaction pour garantir l'intégrité des données
         try {
             DB::transaction(function () use ($trade, $user) {
-                // Vérifier que l'utilisateur possède la carte demandée (avec verrou)
                 $userCollection = Collection::where('user_id', $user->id)
                     ->where('card_id', $trade->requested_card_id)
                     ->lockForUpdate()
@@ -195,7 +284,6 @@ class TradeController extends Controller
                     throw new \Exception('Vous ne possédez pas cette carte.');
                 }
 
-                // Vérifier que le créateur possède toujours la carte offerte (avec verrou)
                 $creatorCollection = Collection::where('user_id', $trade->creator_id)
                     ->where('card_id', $trade->offered_card_id)
                     ->lockForUpdate()
@@ -205,8 +293,6 @@ class TradeController extends Controller
                     throw new \Exception('Le créateur ne possède plus cette carte.');
                 }
 
-                // Effectuer l'échange
-                // 1. Retirer la carte offerte au créateur
                 $creatorCollection->nbCard -= 1;
                 if ($creatorCollection->nbCard <= 0) {
                     $creatorCollection->delete();
@@ -214,7 +300,6 @@ class TradeController extends Controller
                     $creatorCollection->save();
                 }
 
-                // 2. Retirer la carte demandée au répondeur
                 $userCollection->nbCard -= 1;
                 if ($userCollection->nbCard <= 0) {
                     $userCollection->delete();
@@ -222,7 +307,6 @@ class TradeController extends Controller
                     $userCollection->save();
                 }
 
-                // 3. Ajouter la carte demandée au créateur
                 $creatorNewCard = Collection::firstOrCreate(
                     [
                         'user_id' => $trade->creator_id,
@@ -233,7 +317,6 @@ class TradeController extends Controller
                 $creatorNewCard->nbCard += 1;
                 $creatorNewCard->save();
 
-                // 4. Ajouter la carte offerte au répondeur
                 $userNewCard = Collection::firstOrCreate(
                     [
                         'user_id' => $user->id,
@@ -244,14 +327,12 @@ class TradeController extends Controller
                 $userNewCard->nbCard += 1;
                 $userNewCard->save();
 
-                // 5. Marquer l'échange comme complété
                 $trade->update([
                     'responder_id' => $user->id,
                     'status' => 'completed',
                     'completed_at' => now(),
                 ]);
 
-                // 6. Annuler tous les autres échanges "pending" qui utilisent les cartes échangées
                 $this->cancelIncompatibleTrades($trade->creator_id, $trade->offered_card_id);
                 $this->cancelIncompatibleTrades($user->id, $trade->requested_card_id);
             });
@@ -262,28 +343,21 @@ class TradeController extends Controller
         }
     }
 
-    /**
-     * Annuler les échanges incompatibles pour un utilisateur et une carte
-     */
     private function cancelIncompatibleTrades($userId, $cardId)
     {
-        // Récupérer la quantité restante de la carte
         $collection = Collection::where('user_id', $userId)
             ->where('card_id', $cardId)
             ->first();
 
         $availableQty = $collection ? $collection->nbCard : 0;
 
-        // Récupérer tous les échanges "pending" où l'utilisateur offre cette carte
         $pendingTrades = Trade::where('status', 'pending')
             ->where('creator_id', $userId)
             ->where('offered_card_id', $cardId)
             ->get();
 
-        // Compter combien de cartes sont nécessaires pour tous les échanges
         $requiredQty = $pendingTrades->count();
 
-        // Si l'utilisateur n'a pas assez de cartes pour tous les échanges, annuler les plus récents
         if ($availableQty < $requiredQty) {
             $toCancel = $requiredQty - $availableQty;
             $tradesToCancel = $pendingTrades->sortByDesc('created_at')->take($toCancel);
@@ -294,24 +368,18 @@ class TradeController extends Controller
         }
     }
 
-    /**
-     * Annuler une offre d'échange
-     */
     public function cancel(Trade $trade)
     {
         $user = auth()->user();
 
-        // Vérifier que l'utilisateur est bien le créateur de l'offre
         if ($trade->creator_id !== $user->id) {
             return back()->withErrors(['error' => 'Vous ne pouvez pas annuler cette offre.']);
         }
 
-        // Vérifier que l'offre est toujours en attente
         if (!$trade->isPending()) {
             return back()->withErrors(['error' => 'Cette offre ne peut plus être annulée.']);
         }
 
-        // Annuler l'offre
         $trade->update([
             'status' => 'cancelled',
         ]);
