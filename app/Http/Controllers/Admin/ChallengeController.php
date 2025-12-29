@@ -327,6 +327,39 @@ class ChallengeController extends Controller
      */
     public function destroy(Challenge $challenge)
     {
+        // Supprimer toutes les données liées au challenge avant de le supprimer
+
+        // 1. Récupérer tous les IDs des requirements de ce challenge
+        $requirementIds = $challenge->requirements()->pluck('id');
+
+        // 2. Supprimer les user_requirement_progress liés aux requirements
+        if ($requirementIds->isNotEmpty()) {
+            \DB::table('user_requirement_progress')
+                ->whereIn('requirement_id', $requirementIds)
+                ->delete();
+        }
+
+        // 3. Supprimer les requirement_cards liés aux requirements
+        if ($requirementIds->isNotEmpty()) {
+            \DB::table('requirement_cards')
+                ->whereIn('requirement_id', $requirementIds)
+                ->delete();
+        }
+
+        // 4. Supprimer les user_challenges liés au challenge
+        \DB::table('user_challenges')
+            ->where('challenge_id', $challenge->id)
+            ->delete();
+
+        // 5. Supprimer les challenge_donations liées au challenge
+        \DB::table('challenge_donations')
+            ->where('challenge_id', $challenge->id)
+            ->delete();
+
+        // 6. Supprimer les requirements
+        $challenge->requirements()->delete();
+
+        // 7. Enfin, supprimer le challenge
         $challenge->delete();
 
         return back()->with('success', 'Le challenge a été supprimé avec succès.');

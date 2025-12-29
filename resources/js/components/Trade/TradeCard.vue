@@ -8,7 +8,9 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { router } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 // Définir les propriétés que le composant reçoit
 const props = defineProps<{
@@ -75,18 +77,29 @@ const props = defineProps<{
     isNewCard?: boolean; // Nouvelle prop pour afficher le badge NEW
 }>();
 
-// Fonction pour accepter l'échange
+const isAcceptDialogOpen = ref(false);
+const isCancelDialogOpen = ref(false);
+
+// Ouvrir le dialog de confirmation d'acceptation
 const acceptTrade = () => {
-    if (confirm('Voulez-vous vraiment accepter cet échange ?')) {
-        router.post(`/trades/${props.trade.id}/accept`);
-    }
+    isAcceptDialogOpen.value = true;
 };
 
-// Fonction pour annuler l'échange
+// Confirmer l'acceptation de l'échange
+const confirmAccept = () => {
+    isAcceptDialogOpen.value = false;
+    router.post(`/trades/${props.trade.id}/accept`);
+};
+
+// Ouvrir le dialog de confirmation d'annulation
 const cancelTrade = () => {
-    if (confirm('Voulez-vous vraiment annuler cette offre ?')) {
-        router.post(`/trades/${props.trade.id}/cancel`);
-    }
+    isCancelDialogOpen.value = true;
+};
+
+// Confirmer l'annulation de l'échange
+const confirmCancel = () => {
+    isCancelDialogOpen.value = false;
+    router.post(`/trades/${props.trade.id}/cancel`);
 };
 
 // Définir la couleur du badge selon le statut
@@ -287,4 +300,47 @@ const imageUrl = props.trade.requested_card.image;
             </Button>
         </CardFooter>
     </Card>
+
+    <!-- Dialog de confirmation d'acceptation -->
+    <Dialog v-model:open="isAcceptDialogOpen">
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Confirmer l'acceptation</DialogTitle>
+                <DialogDescription>
+                    Êtes-vous sûr de vouloir accepter cet échange ?
+                    <br />
+                    Vous donnerez <strong>{{ trade.requested_card.name }}</strong> et recevrez <strong>{{ trade.offered_card.name }}</strong>.
+                </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+                <Button variant="outline" @click="isAcceptDialogOpen = false">
+                    Annuler
+                </Button>
+                <Button variant="default" @click="confirmAccept">
+                    Accepter l'échange
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+
+    <!-- Dialog de confirmation d'annulation -->
+    <Dialog v-model:open="isCancelDialogOpen">
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Confirmer l'annulation</DialogTitle>
+                <DialogDescription>
+                    Êtes-vous sûr de vouloir annuler cette offre d'échange ?
+                    Cette action est irréversible.
+                </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+                <Button variant="outline" @click="isCancelDialogOpen = false">
+                    Retour
+                </Button>
+                <Button variant="destructive" @click="confirmCancel">
+                    Annuler l'offre
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
 </template>

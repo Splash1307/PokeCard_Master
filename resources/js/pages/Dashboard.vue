@@ -6,7 +6,9 @@ import { Head, Link } from '@inertiajs/vue3';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Trophy, ShoppingBag, Album, Users, TrendingUp } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 interface Stats {
     total_cards: number;
@@ -27,6 +29,7 @@ interface RecentCard {
     name: string;
     image: string;
     set_name: string;
+    rarity_name?: string;
     obtained_at: string;
 }
 
@@ -53,6 +56,14 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: dashboard().url,
     },
 ];
+
+const selectedCard = ref<RecentCard | null>(null);
+const isDialogOpen = ref(false);
+
+const openCardModal = (card: RecentCard) => {
+    selectedCard.value = card;
+    isDialogOpen.value = true;
+};
 
 const getStatusVariant = (status: string) => {
     if (status === 'accepted') return 'default';
@@ -81,7 +92,7 @@ const getStatusLabel = (status: string) => {
             </div>
 
             <!-- Statistiques principales -->
-            <div class="grid gap-4 md:grid-cols-3">
+            <div class="grid gap-4 md:grid-cols-2">
                 <Card>
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle class="text-sm font-medium">Collection totale</CardTitle>
@@ -101,17 +112,6 @@ const getStatusLabel = (status: string) => {
                     <CardContent>
                         <div class="text-2xl font-bold">{{ stats.coins }}</div>
                         <p class="text-xs text-muted-foreground">Monnaie disponible</p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">Challenges actifs</CardTitle>
-                        <Trophy class="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div class="text-2xl font-bold">{{ active_challenges.length }}</div>
-                        <p class="text-xs text-muted-foreground">En cours</p>
                     </CardContent>
                 </Card>
             </div>
@@ -201,70 +201,70 @@ const getStatusLabel = (status: string) => {
                     </CardContent>
                 </Card>
 
-                <!-- Activité récente -->
+                <!-- Cartes rares -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Activité récente</CardTitle>
-                        <CardDescription>Vos dernières actions</CardDescription>
+                        <CardTitle>Cartes les plus rares</CardTitle>
+                        <CardDescription>Vos cartes les plus précieuses</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div class="space-y-4">
-                            <!-- Cartes de la collection -->
-                            <div v-if="recent_cards.length > 0">
-                                <h3 class="text-sm font-semibold mb-2">Cartes de votre collection</h3>
-                                <div class="space-y-2">
-                                    <div
-                                        v-for="card in recent_cards.slice(0, 3)"
-                                        :key="card.id"
-                                        class="flex items-center gap-3"
-                                    >
-                                        <img
-                                            :src="card.image"
-                                            :alt="card.name"
-                                            class="h-12 w-8 object-cover rounded"
-                                        />
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium truncate">{{ card.name }}</p>
-                                            <p class="text-xs text-muted-foreground">{{ card.set_name }} • {{ card.obtained_at }}</p>
-                                        </div>
-                                    </div>
+                        <div v-if="recent_cards.length > 0" class="space-y-2">
+                            <div
+                                v-for="card in recent_cards.slice(0, 3)"
+                                :key="card.id"
+                                class="flex items-center gap-3 cursor-pointer hover:bg-accent/50 rounded-md p-2 transition-colors"
+                                @click="openCardModal(card)"
+                            >
+                                <img
+                                    :src="card.image"
+                                    :alt="card.name"
+                                    class="h-16 w-12 object-cover rounded shadow-sm"
+                                />
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium truncate">{{ card.name }}</p>
+                                    <p class="text-xs text-muted-foreground">
+                                        {{ card.set_name }}
+                                        <span v-if="card.rarity_name"> • {{ card.rarity_name }}</span>
+                                    </p>
                                 </div>
                             </div>
-
-                            <!-- Échanges récents -->
-                            <div v-if="recent_trades.length > 0" class="border-t pt-4">
-                                <h3 class="text-sm font-semibold mb-2">Échanges récents</h3>
-                                <div class="space-y-2">
-                                    <div
-                                        v-for="trade in recent_trades.slice(0, 3)"
-                                        :key="trade.id"
-                                        class="flex items-center justify-between"
-                                    >
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-sm">
-                                                <span class="font-medium">{{ trade.partner }}</span>
-                                            </p>
-                                            <p class="text-xs text-muted-foreground truncate">
-                                                {{ trade.is_creator ? trade.offered_card : trade.requested_card }}
-                                                ↔
-                                                {{ trade.is_creator ? trade.requested_card : trade.offered_card }}
-                                            </p>
-                                        </div>
-                                        <Badge :variant="getStatusVariant(trade.status)" class="ml-2">
-                                            {{ getStatusLabel(trade.status) }}
-                                        </Badge>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div v-if="recent_cards.length === 0 && recent_trades.length === 0" class="text-center py-8 text-muted-foreground">
-                                <p class="text-sm">Aucune activité récente</p>
-                            </div>
+                        </div>
+                        <div v-else class="text-center py-8 text-muted-foreground">
+                            <Album class="h-12 w-12 mx-auto mb-2 opacity-50" />
+                            <p class="text-sm">Aucune carte dans votre collection</p>
                         </div>
                     </CardContent>
                 </Card>
 
             </div>
         </div>
+
+        <!-- Modal pour afficher la carte en grand -->
+        <Dialog v-model:open="isDialogOpen">
+            <DialogContent class="max-w-md">
+                <DialogHeader>
+                    <DialogTitle>{{ selectedCard?.name }}</DialogTitle>
+                </DialogHeader>
+                <div v-if="selectedCard" class="space-y-4">
+                    <div class="flex justify-center">
+                        <img
+                            :src="selectedCard.image"
+                            :alt="selectedCard.name"
+                            class="max-w-full h-auto rounded-lg shadow-lg"
+                        />
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-muted-foreground">Set:</span>
+                            <span class="font-medium">{{ selectedCard.set_name }}</span>
+                        </div>
+                        <div v-if="selectedCard.rarity_name" class="flex justify-between">
+                            <span class="text-muted-foreground">Rareté:</span>
+                            <span class="font-medium">{{ selectedCard.rarity_name }}</span>
+                        </div>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
     </AppLayout>
 </template>

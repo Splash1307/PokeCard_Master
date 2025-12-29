@@ -2,6 +2,7 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { router } from '@inertiajs/vue3';
 import { Edit, Trash2, Power, List, Package, Archive } from 'lucide-vue-next';
 import { ref } from 'vue';
@@ -32,6 +33,7 @@ const props = defineProps<{
 
 const isDeleting = ref(false);
 const isTogglingStatus = ref(false);
+const isDeleteDialogOpen = ref(false);
 
 // Tronquer la description à 100 caractères
 const truncatedDescription = (text: string) => {
@@ -56,11 +58,15 @@ const formatDate = (date: string | null) => {
     });
 };
 
-// Supprimer un challenge
+// Ouvrir le dialog de confirmation
 const deleteChallenge = () => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce challenge ?')) return;
+    isDeleteDialogOpen.value = true;
+};
 
+// Confirmer et supprimer le challenge
+const confirmDelete = () => {
     isDeleting.value = true;
+    isDeleteDialogOpen.value = false;
     router.delete(`/admin/challenges/${props.challenge.id}`, {
         preserveScroll: true,
         onFinish: () => {
@@ -241,4 +247,25 @@ const getRequirementIcon = (type: string) => {
             </Button>
         </CardFooter>
     </Card>
+
+    <!-- Dialog de confirmation de suppression -->
+    <Dialog v-model:open="isDeleteDialogOpen">
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Confirmer la suppression</DialogTitle>
+                <DialogDescription>
+                    Êtes-vous sûr de vouloir supprimer le challenge "{{ challenge.title }}" ?
+                    Cette action est irréversible.
+                </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+                <Button variant="outline" @click="isDeleteDialogOpen = false">
+                    Annuler
+                </Button>
+                <Button variant="destructive" @click="confirmDelete" :disabled="isDeleting">
+                    Supprimer
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
 </template>
