@@ -52,7 +52,7 @@ defineProps<{
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
+        title: 'Accueil',
         href: dashboard().url,
     },
 ];

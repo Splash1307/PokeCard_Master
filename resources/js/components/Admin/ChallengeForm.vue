@@ -111,9 +111,13 @@ const addCardToRequirement = (reqIndex: number) => {
 };
 
 // Vérifier si une carte est déjà sélectionnée dans un requirement
-const isCardAlreadySelected = (reqIndex: number, cardId: number, currentCardIndex: number) => {
-    return form.requirements[reqIndex].cards.some((card, index) =>
-        index !== currentCardIndex && card.card_id === cardId
+const isCardAlreadySelected = (
+    reqIndex: number,
+    cardId: number,
+    currentCardIndex: number,
+) => {
+    return form.requirements[reqIndex].cards.some(
+        (card, index) => index !== currentCardIndex && card.card_id === cardId,
     );
 };
 
@@ -130,7 +134,10 @@ const calculateCardListTargetCount = (reqIndex: number) => {
     if (req.type === 'CARD_LIST') {
         if (req.cards && req.cards.length > 0) {
             // Somme de toutes les quantités requises
-            const total = req.cards.reduce((sum, card) => sum + (card.required_qty || 0), 0);
+            const total = req.cards.reduce(
+                (sum, card) => sum + (card.required_qty || 0),
+                0,
+            );
             form.requirements[reqIndex].target_count = total || 1;
         } else {
             // Pas de cartes = 1 par défaut
@@ -163,7 +170,7 @@ const submit = () => {
 
 // Trouver une carte par ID
 const findCard = (cardId: number) => {
-    return props.cards.find(c => c.id === cardId);
+    return props.cards.find((c) => c.id === cardId);
 };
 
 // Au montage du composant, recalculer les target_count pour les CARD_LIST existants
@@ -194,7 +201,12 @@ onMounted(() => {
                         required
                         :class="{ 'border-red-500': form.errors.title }"
                     />
-                    <p v-if="form.errors.title" class="text-sm text-red-500 mt-1">{{ form.errors.title }}</p>
+                    <p
+                        v-if="form.errors.title"
+                        class="mt-1 text-sm text-red-500"
+                    >
+                        {{ form.errors.title }}
+                    </p>
                 </div>
 
                 <!-- Description -->
@@ -207,7 +219,12 @@ onMounted(() => {
                         required
                         :class="{ 'border-red-500': form.errors.description }"
                     />
-                    <p v-if="form.errors.description" class="text-sm text-red-500 mt-1">{{ form.errors.description }}</p>
+                    <p
+                        v-if="form.errors.description"
+                        class="mt-1 text-sm text-red-500"
+                    >
+                        {{ form.errors.description }}
+                    </p>
                 </div>
 
                 <!-- Dates -->
@@ -218,9 +235,16 @@ onMounted(() => {
                             id="start_date"
                             v-model="form.start_date"
                             type="date"
-                            :class="{ 'border-red-500': form.errors.start_date }"
+                            :class="{
+                                'border-red-500': form.errors.start_date,
+                            }"
                         />
-                        <p v-if="form.errors.start_date" class="text-sm text-red-500 mt-1">{{ form.errors.start_date }}</p>
+                        <p
+                            v-if="form.errors.start_date"
+                            class="mt-1 text-sm text-red-500"
+                        >
+                            {{ form.errors.start_date }}
+                        </p>
                     </div>
                     <div>
                         <Label for="end_date">Date de fin</Label>
@@ -230,7 +254,12 @@ onMounted(() => {
                             type="date"
                             :class="{ 'border-red-500': form.errors.end_date }"
                         />
-                        <p v-if="form.errors.end_date" class="text-sm text-red-500 mt-1">{{ form.errors.end_date }}</p>
+                        <p
+                            v-if="form.errors.end_date"
+                            class="mt-1 text-sm text-red-500"
+                        >
+                            {{ form.errors.end_date }}
+                        </p>
                     </div>
                 </div>
 
@@ -245,7 +274,12 @@ onMounted(() => {
                         required
                         :class="{ 'border-red-500': form.errors.reward }"
                     />
-                    <p v-if="form.errors.reward" class="text-sm text-red-500 mt-1">{{ form.errors.reward }}</p>
+                    <p
+                        v-if="form.errors.reward"
+                        class="mt-1 text-sm text-red-500"
+                    >
+                        {{ form.errors.reward }}
+                    </p>
                 </div>
             </CardContent>
         </Card>
@@ -253,24 +287,38 @@ onMounted(() => {
         <!-- Requirements -->
         <Card>
             <CardHeader class="flex flex-row items-center justify-between">
-                <CardTitle>Requirements ({{ form.requirements.length }})</CardTitle>
+                <CardTitle
+                    >Conditions ({{ form.requirements.length }})</CardTitle
+                >
                 <Button type="button" @click="addRequirement" size="sm">
                     <Plus class="mr-2 h-4 w-4" />
-                    Ajouter un requirement
+                    Ajouter une condition
                 </Button>
             </CardHeader>
             <CardContent class="space-y-4">
-                <p v-if="form.errors.requirements" class="text-sm text-red-500 bg-red-50 dark:bg-red-950 p-3 rounded border border-red-200">
+                <p
+                    v-if="form.errors.requirements"
+                    class="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-500 dark:bg-red-950"
+                >
                     {{ form.errors.requirements }}
                 </p>
-                <p v-if="form.requirements.length === 0" class="text-sm text-muted-foreground">
-                    Aucun requirement. Ajoutez-en au moins un.
+                <p
+                    v-if="form.requirements.length === 0"
+                    class="text-sm text-muted-foreground"
+                >
+                    Aucun condition. Ajoutez-en au moins un.
                 </p>
 
-                <Card v-for="(req, reqIndex) in form.requirements" :key="reqIndex" class="border-2">
+                <Card
+                    v-for="(req, reqIndex) in form.requirements"
+                    :key="reqIndex"
+                    class="border-2"
+                >
                     <CardHeader class="pb-3">
                         <div class="flex items-center justify-between">
-                            <CardTitle class="text-base">Requirement {{ reqIndex + 1 }}</CardTitle>
+                            <CardTitle class="text-base"
+                                >Condition {{ reqIndex + 1 }}</CardTitle
+                            >
                             <Button
                                 type="button"
                                 variant="destructive"
@@ -284,27 +332,50 @@ onMounted(() => {
                     <CardContent class="space-y-4">
                         <!-- Type de requirement -->
                         <div>
-                            <Label>Type de requirement *</Label>
+                            <Label>Type de condition *</Label>
                             <select
                                 :value="req.type"
-                                @change="onRequirementTypeChange(reqIndex, ($event.target as HTMLSelectElement).value)"
-                                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                @change="
+                                    onRequirementTypeChange(
+                                        reqIndex,
+                                        ($event.target as HTMLSelectElement)
+                                            .value,
+                                    )
+                                "
+                                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                <option value="CARD_LIST">Liste de cartes spécifiques</option>
-                                <option value="OPEN_PACKS">Ouvrir des boosters</option>
-                                <option value="OWN_CARDS">Posséder des cartes</option>
+                                <option value="CARD_LIST">
+                                    Liste de cartes spécifiques
+                                </option>
+                                <option value="OPEN_PACKS">
+                                    Ouvrir des boosters
+                                </option>
+                                <option value="OWN_CARDS">
+                                    Posséder des cartes
+                                </option>
                             </select>
                         </div>
 
                         <!-- Set (pour OPEN_PACKS et OWN_CARDS) -->
-                        <div v-if="req.type === 'OPEN_PACKS' || req.type === 'OWN_CARDS'">
+                        <div
+                            v-if="
+                                req.type === 'OPEN_PACKS' ||
+                                req.type === 'OWN_CARDS'
+                            "
+                        >
                             <Label>Set *</Label>
                             <select
                                 v-model="req.set_id"
-                                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                <option :value="null">Sélectionner un set</option>
-                                <option v-for="set in sets" :key="set.id" :value="set.id">
+                                <option :value="null">
+                                    Sélectionner un set
+                                </option>
+                                <option
+                                    v-for="set in sets"
+                                    :key="set.id"
+                                    :value="set.id"
+                                >
                                     {{ set.name }} ({{ set.abbreviation }})
                                 </option>
                             </select>
@@ -313,7 +384,12 @@ onMounted(() => {
                         <!-- Target count (pas utilisé pour CARD_LIST) -->
                         <div v-if="req.type !== 'CARD_LIST'">
                             <Label>
-                                {{ req.type === 'OPEN_PACKS' ? 'Nombre de boosters à ouvrir' : 'Nombre de cartes à posséder' }} *
+                                {{
+                                    req.type === 'OPEN_PACKS'
+                                        ? 'Nombre de boosters à ouvrir'
+                                        : 'Nombre de cartes à posséder'
+                                }}
+                                *
                             </Label>
                             <Input
                                 v-model.number="req.target_count"
@@ -321,8 +397,12 @@ onMounted(() => {
                                 min="1"
                                 required
                             />
-                            <p class="text-xs text-muted-foreground mt-1">
-                                {{ req.type === 'OPEN_PACKS' ? 'Nombre de boosters que le joueur doit ouvrir de ce set' : 'Nombre de cartes que le joueur doit posséder de ce set' }}
+                            <p class="mt-1 text-xs text-muted-foreground">
+                                {{
+                                    req.type === 'OPEN_PACKS'
+                                        ? 'Nombre de boosters que le joueur doit ouvrir de ce set'
+                                        : 'Nombre de cartes que le joueur doit posséder de ce set'
+                                }}
                             </p>
                         </div>
 
@@ -332,12 +412,17 @@ onMounted(() => {
                                 <div class="flex flex-col gap-1">
                                     <div class="flex items-center gap-2">
                                         <Label>Cartes requises *</Label>
-                                        <span v-if="req.cards.length > 0" class="text-xs bg-primary/10 text-primary px-2 py-1 rounded font-medium">
-                                            Total : {{ req.target_count || 0 }} carte(s)
+                                        <span
+                                            v-if="req.cards.length > 0"
+                                            class="rounded bg-primary/10 px-2 py-1 text-xs font-medium text-primary"
+                                        >
+                                            Total :
+                                            {{ req.target_count || 0 }} carte(s)
                                         </span>
                                     </div>
                                     <p class="text-xs text-muted-foreground">
-                                        Le total est calculé automatiquement en fonction des quantités
+                                        Le total est calculé automatiquement en
+                                        fonction des quantités
                                     </p>
                                 </div>
                                 <Button
@@ -351,34 +436,73 @@ onMounted(() => {
                                 </Button>
                             </div>
 
-                            <div v-if="req.cards.length === 0" class="text-sm text-muted-foreground">
+                            <div
+                                v-if="req.cards.length === 0"
+                                class="text-sm text-muted-foreground"
+                            >
                                 Aucune carte sélectionnée
                             </div>
 
                             <div
                                 v-for="(card, cardIndex) in req.cards"
                                 :key="cardIndex"
-                                class="flex gap-2 items-end p-2 border rounded"
-                                :class="{ 'border-red-500': card.card_id > 0 && isCardAlreadySelected(reqIndex, card.card_id, cardIndex) }"
+                                class="flex items-end gap-2 rounded border p-2"
+                                :class="{
+                                    'border-red-500':
+                                        card.card_id > 0 &&
+                                        isCardAlreadySelected(
+                                            reqIndex,
+                                            card.card_id,
+                                            cardIndex,
+                                        ),
+                                }"
                             >
                                 <div class="flex-1">
                                     <Label class="text-xs">Carte</Label>
                                     <select
                                         v-model="card.card_id"
-                                        class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                        class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                                     >
-                                        <option :value="0">Sélectionner une carte</option>
+                                        <option :value="0">
+                                            Sélectionner une carte
+                                        </option>
                                         <option
                                             v-for="c in cards"
                                             :key="c.id"
                                             :value="c.id"
-                                            :disabled="isCardAlreadySelected(reqIndex, c.id, cardIndex)"
+                                            :disabled="
+                                                isCardAlreadySelected(
+                                                    reqIndex,
+                                                    c.id,
+                                                    cardIndex,
+                                                )
+                                            "
                                         >
-                                            {{ c.name }} - {{ c.set_name }} {{ isCardAlreadySelected(reqIndex, c.id, cardIndex) ? '(déjà sélectionnée)' : '' }}
+                                            {{ c.name }} - {{ c.set_name }}
+                                            {{
+                                                isCardAlreadySelected(
+                                                    reqIndex,
+                                                    c.id,
+                                                    cardIndex,
+                                                )
+                                                    ? '(déjà sélectionnée)'
+                                                    : ''
+                                            }}
                                         </option>
                                     </select>
-                                    <p v-if="card.card_id > 0 && isCardAlreadySelected(reqIndex, card.card_id, cardIndex)" class="text-xs text-red-500 mt-1">
-                                        ⚠️ Cette carte est déjà sélectionnée dans ce requirement
+                                    <p
+                                        v-if="
+                                            card.card_id > 0 &&
+                                            isCardAlreadySelected(
+                                                reqIndex,
+                                                card.card_id,
+                                                cardIndex,
+                                            )
+                                        "
+                                        class="mt-1 text-xs text-red-500"
+                                    >
+                                        ⚠️ Cette carte est déjà sélectionnée
+                                        dans ce requirement
                                     </p>
                                 </div>
                                 <div class="w-24">
@@ -388,14 +512,23 @@ onMounted(() => {
                                         type="number"
                                         min="1"
                                         class="h-9"
-                                        @input="calculateCardListTargetCount(reqIndex)"
+                                        @input="
+                                            calculateCardListTargetCount(
+                                                reqIndex,
+                                            )
+                                        "
                                     />
                                 </div>
                                 <Button
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    @click="removeCardFromRequirement(reqIndex, cardIndex)"
+                                    @click="
+                                        removeCardFromRequirement(
+                                            reqIndex,
+                                            cardIndex,
+                                        )
+                                    "
                                     class="h-9"
                                 >
                                     <X class="h-4 w-4" />
@@ -409,7 +542,11 @@ onMounted(() => {
 
         <!-- Boutons de soumission -->
         <div class="flex justify-end gap-2">
-            <Button type="button" variant="outline" @click="$inertia.visit('/admin/challenges')">
+            <Button
+                type="button"
+                variant="outline"
+                @click="$inertia.visit('/admin/challenges')"
+            >
                 Annuler
             </Button>
             <Button type="submit" :disabled="form.processing">

@@ -53,7 +53,7 @@ const breadcrumbs: BreadcrumbItem[] = [
             <div>
                 <h1 class="text-3xl font-bold">Créer un nouveau Challenge</h1>
                 <p class="text-muted-foreground mt-1">
-                    Remplissez les informations du challenge et définissez les requirements
+                    Remplissez les informations du challenge et définissez les conditions
                 </p>
             </div>
 

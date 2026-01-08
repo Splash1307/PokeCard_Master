@@ -33,9 +33,21 @@ const user = computed(() => page.props.auth.user);
 const footerNavItems: NavItem[] = [];
 
 const mainNavItems = computed<NavItem[]>(() => {
-    const items: NavItem[] = [
+    // Si l'utilisateur est admin (role_id === 1), afficher uniquement le menu Admin
+    if (user.value?.role_id === 1) {
+        return [
+            {
+                title: 'Admin',
+                href: '/admin/challenges',
+                icon: Shield,
+            },
+        ];
+    }
+
+    // Sinon, afficher le menu utilisateur normal
+    return [
         {
-            title: 'Dashboard',
+            title: 'Accueil',
             href: dashboard(),
             icon: LayoutGrid,
         },
@@ -60,17 +72,6 @@ const mainNavItems = computed<NavItem[]>(() => {
             icon: Trophy,
         },
     ];
-
-    // Ajouter l'item Admin si l'utilisateur est admin (role_id === 1)
-    if (user.value?.role_id === 1) {
-        items.push({
-            title: 'Admin',
-            href: '/admin/challenges',
-            icon: Shield,
-        });
-    }
-
-    return items;
 });
 </script>
 
