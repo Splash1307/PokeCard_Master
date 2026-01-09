@@ -20,7 +20,7 @@ class UsersSeeder extends Seeder
             'password' => Hash::make('password'),
             'coin' => 999999,
             'level_id' => 50,
-            'lastConnexionAt' => Carbon::now(),
+            'lastConnexionAt' => Carbon::now()->subDay(),
             'role_id' => 1,
         ]);
 
@@ -30,7 +30,7 @@ class UsersSeeder extends Seeder
             'password' => Hash::make('password'),
             'coin' => 999999,
             'level_id' => 50,
-            'lastConnexionAt' => Carbon::now(),
+            'lastConnexionAt' => Carbon::now()->subDay(),
             'role_id' => 2,
         ]);
 
@@ -40,7 +40,7 @@ class UsersSeeder extends Seeder
             'password' => Hash::make('password'),
             'coin' => 999999,
             'level_id' => 50,
-            'lastConnexionAt' => Carbon::now(),
+            'lastConnexionAt' => Carbon::now()->subDay(),
             'role_id' => 2,
         ]);
 
@@ -50,7 +50,7 @@ class UsersSeeder extends Seeder
                 'email' => $faker->unique()->safeEmail(),
                 'password' => Hash::make('password'),
                 'coin' => $faker->numberBetween(100, 5000),
-                'lastConnexionAt' => $faker->dateTimeBetween('-30 days', 'now'),
+                'lastConnexionAt' => Carbon::now()->subDay(),
                 'role_id' => 2,
             ]);
         }
