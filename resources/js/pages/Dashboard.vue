@@ -44,7 +44,8 @@ interface RecentTrade {
 }
 
 defineProps<{
-    stats: Stats;
+    is_admin: boolean;
+    stats: Stats | null;
     active_challenges: Challenge[];
     recent_cards: RecentCard[];
     recent_trades: RecentTrade[];
@@ -83,7 +84,32 @@ const getStatusLabel = (status: string) => {
     <Head title="Dashboard" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
+        <!-- Vue Admin -->
+        <div v-if="is_admin" class="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
+            <div>
+                <h1 class="text-3xl font-bold">Tableau de bord Administrateur</h1>
+                <p class="text-muted-foreground mt-1">Bienvenue dans l'interface d'administration</p>
+            </div>
+
+            <Card class="max-w-2xl">
+                <CardHeader class="text-center">
+                    <Trophy class="h-16 w-16 mx-auto mb-4 text-primary" />
+                    <CardTitle>Gestion des Challenges</CardTitle>
+                    <CardDescription>Accédez à l'interface de gestion des challenges</CardDescription>
+                </CardHeader>
+                <CardContent class="flex justify-center">
+                    <Link href="/challenges">
+                        <Button size="lg" class="gap-2">
+                            <Trophy class="h-5 w-5" />
+                            Voir les challenges
+                        </Button>
+                    </Link>
+                </CardContent>
+            </Card>
+        </div>
+
+        <!-- Vue Joueur -->
+        <div v-else class="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
 
             <!-- En-tête avec titre -->
             <div>
@@ -92,7 +118,7 @@ const getStatusLabel = (status: string) => {
             </div>
 
             <!-- Statistiques principales -->
-            <div class="grid gap-4 md:grid-cols-2">
+            <div v-if="stats" class="grid gap-4 md:grid-cols-2">
                 <Card>
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle class="text-sm font-medium">Collection totale</CardTitle>

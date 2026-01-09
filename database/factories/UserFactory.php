@@ -29,7 +29,10 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password'),
             'coin' => fake()->numberBetween(0, 1000),
             'lastConnexionAt' => now(),
-            'role_id' => 1, // ID du rôle par défaut
+            'role_id' => 1,
+            'level_id' => 1,
+            'xp' => 0,
+            'nbBooster' => 0,
         ];
     }
 }

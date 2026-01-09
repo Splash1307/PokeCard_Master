@@ -1,3 +1,5 @@
+
+
 <?php
 
 /*
@@ -41,7 +43,29 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Crée les données nécessaires pour les tests (rôles et niveaux)
+ */
+function seedDatabase()
 {
-    // ..
+    // Seed des rôles
+    \Illuminate\Support\Facades\DB::table('roles')->insert([
+        ['id' => 1, 'name' => 'Admin'],
+        ['id' => 2, 'name' => 'Player'],
+    ]);
+
+    // Seed des niveaux (au moins les premiers niveaux)
+    for ($i = 1; $i <= 10; $i++) {
+        \Illuminate\Support\Facades\DB::table('levels')->insert([
+            ['id' => $i, 'level' => $i, 'nbCoins' => 25 * $i, 'nbBooster' => $i > 1 ? 1 : 0],
+        ]);
+    }
+}
+
+/**
+ * Alias pour la compatibilité
+ */
+function seedRoles()
+{
+    seedDatabase();
 }

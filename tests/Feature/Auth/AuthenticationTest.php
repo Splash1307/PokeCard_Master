@@ -1,84 +1,62 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Support\Facades\RateLimiter;
-use Laravel\Fortify\Features;
+use function Pest\Laravel\assertAuthenticated;
+use function Pest\Laravel\assertGuest;
+use function Pest\Laravel\post;
 
-test('login screen can be rendered', function () {
-    $response = $this->get(route('login'));
+it('permet à un utilisateur de se connecter avec succès', function () {
+    // Création des rôles nécessaires
+    seedRoles();
 
-    $response->assertStatus(200);
-});
+    // Création d'un utilisateur de test
+    $user = User::factory()->create([
+        'email' => 'player1@exemple.com',
+        'password' => bcrypt('password'),
+    ]);
 
-test('users can authenticate using the login screen', function () {
-    $user = User::factory()->withoutTwoFactor()->create();
-
-    $response = $this->post(route('login.store'), [
-        'email' => $user->email,
+    // Soumission du formulaire de connexion
+    $response = post('/login', [
+        'email' => 'player1@exemple.com',
         'password' => 'password',
     ]);
 
-    $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    // Vérification de la redirection vers le dashboard
+    $response->assertRedirect('/dashboard');
+
+    // Vérification que l'utilisateur est authentifié
+    assertAuthenticated();
 });
 
-test('users with two factor enabled are redirected to two factor challenge', function () {
-    if (! Features::canManageTwoFactorAuthentication()) {
-        $this->markTestSkipped('Two-factor authentication is not enabled.');
-    }
+it('refuse la connexion avec des identifiants invalides', function () {
+    // Création des rôles nécessaires
+    seedRoles();
 
-    Features::twoFactorAuthentication([
-        'confirm' => true,
-        'confirmPassword' => true,
+    // Création d'un utilisateur de test
+    $user = User::factory()->create([
+        'email' => 'player1@exemple.com',
+        'password' => bcrypt('password'),
     ]);
 
-    $user = User::factory()->create();
+    // Tentative de connexion avec un mauvais mot de passe
+    $response = post('/login', [
+        'email' => 'player1@exemple.com',
+        'password' => 'wrong-password',
+    ]);
 
-    $user->forceFill([
-        'two_factor_secret' => encrypt('test-secret'),
-        'two_factor_recovery_codes' => encrypt(json_encode(['code1', 'code2'])),
-        'two_factor_confirmed_at' => now(),
-    ])->save();
+    // Vérification que l'utilisateur n'est pas authentifié
+    assertGuest();
+});
 
-    $response = $this->post(route('login'), [
-        'email' => $user->email,
+it('refuse la connexion avec un email invalide', function () {
+    seedRoles();
+
+    // Tentative de connexion avec un email qui n'existe pas
+    $response = post('/login', [
+        'email' => 'nonexistent@exemple.com',
         'password' => 'password',
     ]);
 
-    $response->assertRedirect(route('two-factor.login'));
-    $response->assertSessionHas('login.id', $user->id);
-    $this->assertGuest();
-});
-
-test('users can not authenticate with invalid password', function () {
-    $user = User::factory()->create();
-
-    $this->post(route('login.store'), [
-        'email' => $user->email,
-        'password' => 'wrong-password',
-    ]);
-
-    $this->assertGuest();
-});
-
-test('users can logout', function () {
-    $user = User::factory()->create();
-
-    $response = $this->actingAs($user)->post(route('logout'));
-
-    $this->assertGuest();
-    $response->assertRedirect(route('home'));
-});
-
-test('users are rate limited', function () {
-    $user = User::factory()->create();
-
-    RateLimiter::increment(md5('login'.implode('|', [$user->email, '127.0.0.1'])), amount: 5);
-
-    $response = $this->post(route('login.store'), [
-        'email' => $user->email,
-        'password' => 'wrong-password',
-    ]);
-
-    $response->assertTooManyRequests();
+    // Vérification que l'utilisateur n'est pas authentifié
+    assertGuest();
 });

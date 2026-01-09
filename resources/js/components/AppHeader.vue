@@ -188,8 +188,8 @@ const rightNavItems: NavItem[] = [
                 </div>
 
                 <div class="ml-auto flex items-center space-x-2">
-                    <!-- Affichage des coins -->
-                    <div class="flex items-center gap-2 rounded-lg bg-yellow-500/10 px-3 py-1.5 border border-yellow-500/20">
+                    <!-- Affichage des coins (masqué pour l'admin) -->
+                    <div v-if="auth.user.role_id !== 1" class="flex items-center gap-2 rounded-lg bg-yellow-500/10 px-3 py-1.5 border border-yellow-500/20">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="18"
