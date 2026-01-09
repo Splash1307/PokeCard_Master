@@ -54,6 +54,7 @@ class HandleInertiaRequests extends Middleware
                     'level_id' => null,
                     'xp' => null,
                     'nbBooster' => null,
+                    'lastConnexionAt' => null,
                 ];
             } else {
                 // Pour les joueurs, afficher toutes les données
@@ -67,6 +68,7 @@ class HandleInertiaRequests extends Middleware
                     'level_id' => $user->level->level,
                     'xp' => $user->xp,
                     'nbBooster' => $user->nbBooster,
+                    'lastConnexionAt' => $user->lastConnexionAt,
                 ];
             }
         }

@@ -67,45 +67,45 @@ const strokeDashoffset = computed(() => {
             </template>
         </div>
 
-        <div class="flex items-center gap-3">
-            <!-- Bouton cadeau quotidien -->
-            <button
-                @click="claimDailyBooster"
-                :disabled="!canClaimDailyBooster"
-                :class="[
-                    'flex items-center gap-1 rounded-lg px-3 py-1.5 transition-all duration-200',
-                    canClaimDailyBooster
-                        ? 'animate-pulse cursor-pointer bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:from-purple-600 hover:to-pink-600 hover:shadow-xl'
-                        : 'cursor-not-allowed bg-gray-300 text-gray-500 opacity-50 dark:bg-gray-700 dark:text-gray-500',
-                ]"
-                :title="
-                    canClaimDailyBooster
-                        ? 'Récupérer votre booster quotidien'
-                        : 'Déjà récupéré aujourd\'hui'
-                "
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                >
-                    <polyline points="20 12 20 22 4 22 4 12" />
-                    <rect width="20" height="5" x="2" y="7" />
-                    <line x1="12" x2="12" y1="22" y2="7" />
-                    <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
-                    <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
-                </svg>
-                <span class="text-sm font-semibold">+1</span>
-            </button>
-
         <!-- Masquer les informations de jeu pour l'admin -->
         <div v-if="auth.user?.role_id !== 1" class="flex items-center gap-3">
+            <div class="flex items-center gap-3">
+                <!-- Bouton cadeau quotidien -->
+                <button
+                    @click="claimDailyBooster"
+                    :disabled="!canClaimDailyBooster"
+                    :class="[
+                        'flex items-center gap-1 rounded-lg px-3 py-1.5 transition-all duration-200',
+                        canClaimDailyBooster
+                            ? 'animate-pulse cursor-pointer bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:from-purple-600 hover:to-pink-600 hover:shadow-xl'
+                            : 'cursor-not-allowed bg-gray-300 text-gray-500 opacity-50 dark:bg-gray-700 dark:text-gray-500',
+                    ]"
+                    :title="
+                        canClaimDailyBooster
+                            ? 'Récupérer votre booster quotidien'
+                            : 'Déjà récupéré aujourd\'hui'
+                    "
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <polyline points="20 12 20 22 4 22 4 12" />
+                        <rect width="20" height="5" x="2" y="7" />
+                        <line x1="12" x2="12" y1="22" y2="7" />
+                        <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" />
+                        <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+                    </svg>
+                    <span class="text-sm font-semibold">+1</span>
+                </button>
+            </div>
             <!-- Coins -->
             <div class="flex items-center gap-2">
                 <svg
