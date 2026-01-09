@@ -273,9 +273,6 @@ class ChallengeController extends Controller
                 );
             }
         }
-
-        // Calculer immédiatement la progression pour ce nouvel utilisateur
-        self::checkAndUpdateProgress($userId);
     }
 
     /**
@@ -406,6 +403,11 @@ class ChallengeController extends Controller
         switch ($requirement->type) {
             case 'CARD_LIST':
                 // Pour CARD_LIST, compter les cartes données au challenge
+                // S'assurer que requirementCards est chargé
+                if (!$requirement->relationLoaded('requirementCards')) {
+                    $requirement->load('requirementCards');
+                }
+
                 $totalDonated = 0;
                 foreach ($requirement->requirementCards as $reqCard) {
                     $donated = ChallengeDonation::where('user_id', $user->id)

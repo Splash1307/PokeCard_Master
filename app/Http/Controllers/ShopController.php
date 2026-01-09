@@ -10,46 +10,6 @@ use Inertia\Inertia;
 class ShopController extends Controller
 {
     /**
-     * Afficher la boutique
-     */
-    public function index()
-    {
-        $user = auth()->user();
-
-        // Récupérer la collection de l'utilisateur
-        $userCollection = Collection::where('user_id', $user->id)
-            ->where('nbCard', '>', 0)
-            ->pluck('nbCard', 'card_id')
-            ->toArray();
-
-        // Récupérer toutes les cartes avec leurs prix (basés sur la rareté)
-        $allCards = Card::with(['rarity', 'primaryType', 'set.serie'])
-            ->orderBy('name')
-            ->get()
-            ->map(function ($card) use ($userCollection) {
-                return [
-                    'id' => $card->id,
-                    'localId' => $card->localId,
-                    'name' => $card->name,
-                    'image' => $card->image,
-                    'rarity' => $card->rarity ? [
-                        'id' => $card->rarity->id,
-                        'name' => $card->rarity->name,
-                        'price' => $card->rarity->price,
-                    ] : null,
-                    'primaryType' => $card->primaryType,
-                    'set' => $card->set,
-                    'owned' => isset($userCollection[$card->id]),
-                    'quantity' => $userCollection[$card->id] ?? 0,
-                ];
-            });
-
-        return Inertia::render('Shop/Index', [
-            'allCards' => $allCards,
-        ]);
-    }
-
-    /**
      * Acheter une carte
      */
     public function purchase(Card $card)

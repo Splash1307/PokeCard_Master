@@ -18,6 +18,18 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
+        // Si l'utilisateur est un admin (role_id = 1), afficher une vue simplifiée
+        if ($user->role_id === 1) {
+            return Inertia::render('Dashboard', [
+                'is_admin' => true,
+                'stats' => null,
+                'active_challenges' => [],
+                'recent_cards' => [],
+                'recent_trades' => [],
+            ]);
+        }
+
+        // Pour les joueurs : afficher le dashboard normal
         // Statistiques du joueur
         $totalCards = $user->collections()->sum('nbCard');
         $uniqueCards = $user->collections()->count();
@@ -101,6 +113,7 @@ class DashboardController extends Controller
             });
 
         return Inertia::render('Dashboard', [
+            'is_admin' => false,
             'stats' => [
                 'total_cards' => $totalCards,
                 'unique_cards' => $uniqueCards,

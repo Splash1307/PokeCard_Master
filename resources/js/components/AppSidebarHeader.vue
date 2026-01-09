@@ -42,7 +42,8 @@ const strokeDashoffset = computed(() => {
             </template>
         </div>
 
-        <div class="flex items-center gap-3">
+        <!-- Masquer les informations de jeu pour l'admin -->
+        <div v-if="auth.user?.role_id !== 1" class="flex items-center gap-3">
             <!-- Coins -->
             <div class="flex items-center gap-2">
                 <svg
