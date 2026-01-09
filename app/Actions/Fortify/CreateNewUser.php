@@ -4,6 +4,7 @@ namespace App\Actions\Fortify;
 
 use App\Models\User;
 use App\Http\Controllers\ChallengeController;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
@@ -37,7 +38,7 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $input['password'],
             'coin' => 0,
             'role_id' => 2,
-            'lastConnexionAt' => now(),
+            'lastConnexionAt' => Carbon::now()->subDay(),
         ]);
 
         // Attribuer automatiquement tous les challenges actifs au nouvel utilisateur
