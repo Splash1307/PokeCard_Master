@@ -30,6 +30,9 @@ class User extends Authenticatable
         'coin',
         'lastConnexionAt',
         'role_id',
+        'level_id',
+        'xp',
+        'nbBooster'
     ];
 
     /**
@@ -102,4 +105,32 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserChallenge::class);
     }
+
+    public function level(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Level::class);
+    }
+
+    public function addXp(int $amount): void
+    {
+        $this->xp += $amount;
+
+        // Gestion de la montée de niveau
+        while ($this->xp >= 100) {
+            $this->xp -= 100;
+            $this->level_id += 1;
+
+            // Récupérer et appliquer les récompenses
+            $levelRewards = Level::where('level', $this->level_id)->first();
+
+            if ($levelRewards) {
+                $this->coin += $levelRewards->nbCoins;
+                $this->nbBooster += $levelRewards->nbBooster;
+            }
+        }
+
+        $this->save();
+    }
+
+
 }

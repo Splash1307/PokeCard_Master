@@ -7,6 +7,10 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
+const page = usePage();
+const auth = computed(() => page.props.auth);
 
 type Set = {
     id: number;
@@ -108,8 +112,30 @@ const handleClick = () => {
 
         <CardFooter class="p-4 pt-0">
             <Button @click="handleClick" class="w-full" :disabled="disabled">
+                <!-- Bouton désactivé -->
                 <span v-if="disabled">Ouverture...</span>
-                <span v-else>Ouvrir - 50 coins</span>
+
+                <span v-else-if="auth.user.nbBooster === 0">
+                    Ouvrir - 50 💰
+                </span>
+
+                <span v-else class="flex items-center gap-2">
+                    Ouvrir - 1
+                    <svg width="24" height="24" viewBox="0 0 24 24">
+                        <rect
+                            x="5"
+                            y="2"
+                            width="14"
+                            height="20"
+                            rx="2"
+                            ry="2"
+                            fill="url(#boosterGradient)"
+                            stroke="currentColor"
+                            stroke-width="0.5"
+                            class="text-purple-300/50"
+                        />
+                    </svg>
+                </span>
             </Button>
         </CardFooter>
     </Card>
