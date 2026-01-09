@@ -19,6 +19,7 @@ class UsersSeeder extends Seeder
             'email' => 'admin@example.com',
             'password' => Hash::make('password'),
             'coin' => 999999,
+            'level_id' => 50,
             'lastConnexionAt' => Carbon::now(),
             'role_id' => 1,
         ]);
@@ -28,6 +29,7 @@ class UsersSeeder extends Seeder
             'email' => 'player1@example.com',
             'password' => Hash::make('password'),
             'coin' => 999999,
+            'level_id' => 50,
             'lastConnexionAt' => Carbon::now(),
             'role_id' => 2,
         ]);
@@ -37,6 +39,7 @@ class UsersSeeder extends Seeder
             'email' => 'player2@example.com',
             'password' => Hash::make('password'),
             'coin' => 999999,
+            'level_id' => 50,
             'lastConnexionAt' => Carbon::now(),
             'role_id' => 2,
         ]);

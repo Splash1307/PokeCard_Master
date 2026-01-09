@@ -18,6 +18,9 @@ return new class extends Migration {
             $table->string('email', 255)->unique();
             $table->string('password', 255);
             $table->integer('coin');
+            $table->integer('nbBooster')->default(0);
+            $table->foreignId('level_id')->default(1)->constrained('levels');
+            $table->integer('xp')->default(0);
             $table->dateTime('lastConnexionAt');
             $table->foreignId('role_id')->constrained('roles');
         });

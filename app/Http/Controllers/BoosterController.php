@@ -56,18 +56,32 @@ class BoosterController extends Controller
     {
         $user = auth()->user();
         $boosterPrice = 50; // Prix d'un booster
+        $usedFreeBooster = false;
 
-        // Vérifier que l'utilisateur a assez de coins
-        if ($user->coin < $boosterPrice) {
-            return back()->withErrors(['error' => 'Vous n\'avez pas assez de coins pour ouvrir un booster.']);
+        // Vérifier si l'utilisateur a un booster gratuit
+        if ($user->nbBooster > 0) {
+            // Utiliser un booster gratuit
+            $user->nbBooster -= 1;
+            $usedFreeBooster = true;
+        } else {
+            // Vérifier que l'utilisateur a assez de coins
+            if ($user->coin < $boosterPrice) {
+                return back()->withErrors(['error' => 'Vous n\'avez pas assez de coins pour ouvrir un booster.']);
+            }
+
+            // Déduire les coins
+            $user->coin -= $boosterPrice;
         }
 
-        // Déduire les coins
-        $user->coin -= $boosterPrice;
         $user->save();
+
+        // +5 XP pour l'ouverture du booster
+        $user->addXp(5);
 
         // Générer les 10 cartes du booster
         $cards = $this->generateBoosterCards($set);
+
+        $newCardsCount = 0;
 
         // Vérifier quelles cartes sont nouvelles et les ajouter à la collection
         foreach ($cards as &$card) {
@@ -77,6 +91,12 @@ class BoosterController extends Controller
 
             // Si la carte n'existe pas dans la collection, c'est une nouvelle carte
             $card['isNew'] = !$collection || $collection->nbCard == 0;
+
+            // +1 XP pour chaque nouvelle carte
+            if ($card['isNew']) {
+                $user->addXp(1);
+                $newCardsCount++;
+            }
 
             // Ajouter la carte à la collection
             if (!$collection) {
@@ -109,8 +129,18 @@ class BoosterController extends Controller
                 'abbreviation' => $set->abbreviation,
                 'logo' => $set->logo ?? null,
             ],
+            'xpGained' => 5 + $newCardsCount,
+            'newCardsCount' => $newCardsCount,
+            'usedFreeBooster' => $usedFreeBooster,
+            'user' => [
+                'level' => $user->level->level,
+                'xp' => $user->xp,
+                'coin' => $user->coin,
+                'nbBooster' => $user->nbBooster,
+            ],
         ]);
     }
+
 
     /**
      * Générer 10 cartes aléatoires pour un booster
