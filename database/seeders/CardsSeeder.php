@@ -25,7 +25,7 @@ class CardsSeeder extends Seeder
                 ->where('sets.id', $setId)
                 ->value('series.abbreviation');
 
-            echo "🔄 Traitement de $setAbbr ($cardCount cartes)..." . PHP_EOL;
+            echo "Traitement de $setAbbr ($cardCount cartes)..." . PHP_EOL;
 
             // Préparer les URLs pour les requêtes concurrentes
             $requests = [];
@@ -42,7 +42,7 @@ class CardsSeeder extends Seeder
             $allCardsData = [];
 
             foreach ($chunks as $chunkIndex => $chunk) {
-                echo "  📦 Lot " . ($chunkIndex + 1) . "/" . count($chunks) . PHP_EOL;
+                echo "Lot " . ($chunkIndex + 1) . "/" . count($chunks) . PHP_EOL;
 
                 // Requêtes HTTP concurrentes avec Http::pool()
                 $responses = Http::pool(function ($pool) use ($chunk) {
@@ -63,7 +63,7 @@ class CardsSeeder extends Seeder
                     }
 
                     if (!$response->successful()) {
-                        echo "  ❌ Carte non trouvée : {$card['unpadded']}" . PHP_EOL;
+                        echo "Carte non trouvée : {$card['unpadded']}" . PHP_EOL;
                         continue;
                     }
 
@@ -104,10 +104,10 @@ class CardsSeeder extends Seeder
             // Insertion en masse de toutes les cartes du set
             if (!empty($allCardsData)) {
                 DB::table('cards')->insert($allCardsData);
-                echo "✅ {$setAbbr} terminé : " . count($allCardsData) . " cartes insérées" . PHP_EOL;
+                echo "{$setAbbr} terminé : " . count($allCardsData) . " cartes insérées" . PHP_EOL;
             }
         }
 
-        echo "🎉 Seeding terminé !" . PHP_EOL;
+        echo "Seeding terminé !" . PHP_EOL;
     }
 }

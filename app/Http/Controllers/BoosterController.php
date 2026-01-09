@@ -150,20 +150,25 @@ class BoosterController extends Controller
         $cards = [];
 
         // Récupérer toutes les raretés
-        $allRarities = Rarity::all()->keyBy('id');
+        $raritiesInSet = Rarity::whereIn(
+            'id',
+            Card::where('set_id', $set->id)
+                ->pluck('rarity_id')
+                ->unique()
+        )->get();
 
         // Séparer les raretés communes (Commune, Peu commune, Rare) des raretés supérieures
         // On considère que les raretés avec un percentageSpawn élevé sont les communes
         // Vous pouvez aussi filtrer par nom si vous préférez
-        $commonRarities = $allRarities->filter(function ($rarity) {
-            // Les raretés communes sont celles avec un percentageSpawn >= 15
+        $commonRarities = $raritiesInSet->filter(function ($rarity) {
+            // Les raretés communes sont celles avec un percentageSpawn >= 50
             // Ajustez cette valeur selon votre configuration
-            return $rarity->percentageSpawn >= 15;
+            return $rarity->percentageSpawn >= 50;
         });
 
-        $rareRarities = $allRarities->filter(function ($rarity) {
-            // Les raretés supérieures sont celles avec un percentageSpawn < 15
-            return $rarity->percentageSpawn < 15;
+        $rareRarities = $raritiesInSet->filter(function ($rarity) {
+            // Les raretés supérieures sont celles avec un percentageSpawn < 50
+            return $rarity->percentageSpawn < 50;
         });
 
         // Générer 9 cartes normales (seulement raretés communes)
@@ -174,17 +179,7 @@ class BoosterController extends Controller
             }
         }
 
-        // Générer la 10ème carte
-        // 75% de chance d'avoir une rareté commune, 25% de chance d'avoir une rareté supérieure
-        $randomChance = mt_rand(1, 100);
-
-        if ($randomChance <= 75) {
-            // 75% : Tirer dans les raretés communes
-            $card = $this->drawCard($set, $commonRarities);
-        } else {
-            // 25% : Tirer dans les raretés supérieures
-            $card = $this->drawCard($set, $rareRarities->isNotEmpty() ? $rareRarities : $allRarities);
-        }
+        $card = $this->drawCard($set, $rareRarities->isNotEmpty() ? $rareRarities : $raritiesInSet);
 
         if ($card) {
             $cards[] = $card;
