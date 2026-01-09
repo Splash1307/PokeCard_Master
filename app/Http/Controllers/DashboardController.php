@@ -111,4 +111,21 @@ class DashboardController extends Controller
             'recent_trades' => $recentTrades,
         ]);
     }
+
+    public function claimDailyBooster()
+    {
+        $user = auth()->user();
+
+        if (!$user->lastConnexionAt || !$user->lastConnexionAt->isToday()) {
+            $user->increment('nbBooster');
+            $user->lastConnexionAt = now();
+            $user->save();
+
+            return redirect()->back();
+        }
+
+        return redirect()->back();
+    }
+
+
 }

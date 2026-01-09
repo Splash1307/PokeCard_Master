@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -15,6 +16,9 @@ Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index
 
 // Routes pour la collection et les échanges de cartes
 Route::middleware(['auth', 'verified'])->group(function () {
+
+    Route::post('/claim-daily-booster', [DashboardController::class, 'claimDailyBooster'])
+        ->name('daily.booster');
 
     // Collection
     Route::get('/collection', [App\Http\Controllers\CollectionController::class, 'index'])->name('collection.index');

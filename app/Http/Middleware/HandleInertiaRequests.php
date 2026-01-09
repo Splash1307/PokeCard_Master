@@ -36,6 +36,7 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
         return [
@@ -53,9 +54,11 @@ class HandleInertiaRequests extends Middleware
                     'level_id' => $request->user()->level->level,
                     'xp' => $request->user()->xp,
                     'nbBooster' => $request->user()->nbBooster,
+                    'lastConnexionAt' => $request->user()->lastConnexionAt,
                 ] : null,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
+
 }
